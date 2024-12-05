@@ -27,14 +27,9 @@ headers = {
 files = [
     ('_xsrf', (None, '7d5485df54f21144a62d045da9d55501')),
     ('failUrl', (None, '/account/login?backurl=%2F')),
-    ('accountType', (None, 'APPLICANT')),
     ('remember', (None, 'yes')),
     ('username', (None, os.environ.get("USERNAME"))),
     ('password', (None, os.environ.get("PASSWORD"))),
-    ('username', (None, os.environ.get("USERNAME"))),
-    ('password', (None, os.environ.get("PASSWORD"))),
-    ('isBot', (None, 'false')),
-    ('captchaText', (None, '')),
 ]
 
 response = requests.post('https://nn.hh.ru/account/login', params={'backurl': '/',}, headers=headers, files=files)
