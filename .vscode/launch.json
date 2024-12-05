@@ -1,0 +1,19 @@
+{
+    // Use IntelliSense to learn about possible attributes.
+    // Hover to view descriptions of existing attributes.
+    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "auth_hh_ru",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "python\\test_cases\\auth_hh_ru.py",
+            "console": "integratedTerminal",
+            "env": {
+                "USERNAME": "79101371013", 
+                "PASSWORD": "v6p-Jm5-wrg-vgN",
+            },
+        },
+    ]
+}
