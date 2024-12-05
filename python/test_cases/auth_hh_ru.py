@@ -1,51 +1,6 @@
 import requests
 import os
 
-cookies = {
-    '__ddg1_': 'JJkJjLQ0TCJr7rw57Fgp',
-    'hhuid': 'f1O3YiM8nXtG8GaUwJspbQ--',
-    '_ym_uid': '1721024668191689940',
-    '_ym_d': '1721024668',
-    'tmr_lvid': '46756c91ef047bbdddb6a96879821872',
-    'tmr_lvidTS': '1721024668506',
-    'iap.uid': '26ff098882ef43b48175cfaf2f9c6dfe',
-    'region_clarified': 'nn.hh.ru',
-    'redirect_host': 'nn.hh.ru',
-    'cookie_policy_agreement': 'true',
-    'uxs_uid': 'ef8aca10-4272-11ef-ad01-b18400d7eca4',
-    'hhul': 'be806ed0592503c41154316b909a4105656c1664d4d017dcab8e5e2621a730af',
-    'regions': '66',
-    'device_magritte_breakpoint': 'l',
-    'device_breakpoint': 'l',
-    '__ddg9_': '89.109.21.207',
-    '_xsrf': '7d5485df54f21144a62d045da9d55501',
-    'display': 'desktop',
-    'crypted_hhuid': '92E257098BFD36E85904FBCF7FF1ADDEA369F1B01207DF95DCF6B161662838CE',
-    'GMT': '3',
-    '_ym_isad': '2',
-    '_ym_visorc': 'b',
-    'domain_sid': 'Oz2KBlLHFBxiNPdmDQUU4%3A1733430770862',
-    'remember': '0',
-    'lrp': '""',
-    'lrr': '""',
-    'total_searches': '1',
-    'hhrole': 'anonymous',
-    'hhtoken': '0yK93v_WWBYMYXqP!LrkxckHkVHT',
-    '__zzatgib-w-hh': 'MDA0dC0jViV+FmELHw4/aQsbSl1pCENQGC9LX3haPx8iYkxbU3USVnwqHhcIJiNUOkEXbnQoLi1xH1AZOVURCxIXRF5cVWl1FRpLSiVueCplJS0xViR8SylEXFB8KRwUd3MlTxARVy8NPjteLW8PKhMjZHYhP04hC00+KlwVNk0mbjN3RhsJHlksfEspNV4KNydLGnluI1AQPhRwQScwX0NsJRh4EiRED359WEpDNCckTzgTXkEzaWVpcC9gIBIlEU1HGEVkW0I2KBVLcU8cenZffSpCaCBjSlwfRlhOfC4Ve0M8YwxxFU11cjgzGxBhDyMOGFgJDA0yaFF7CT4VHThHKHIzd2UvO2giYkpgIzVRP0FaW1Q4NmdBEXUmCQg3LGBwVxlRExpceEdXeiwcFHtuJk8KDlxBQWllbQwtUlFRS2IPHxo0aQteTA==ktMtUQ==',
-    '__zzatgib-w-hh': 'MDA0dC0jViV+FmELHw4/aQsbSl1pCENQGC9LX3haPx8iYkxbU3USVnwqHhcIJiNUOkEXbnQoLi1xH1AZOVURCxIXRF5cVWl1FRpLSiVueCplJS0xViR8SylEXFB8KRwUd3MlTxARVy8NPjteLW8PKhMjZHYhP04hC00+KlwVNk0mbjN3RhsJHlksfEspNV4KNydLGnluI1AQPhRwQScwX0NsJRh4EiRED359WEpDNCckTzgTXkEzaWVpcC9gIBIlEU1HGEVkW0I2KBVLcU8cenZffSpCaCBjSlwfRlhOfC4Ve0M8YwxxFU11cjgzGxBhDyMOGFgJDA0yaFF7CT4VHThHKHIzd2UvO2giYkpgIzVRP0FaW1Q4NmdBEXUmCQg3LGBwVxlRExpceEdXeiwcFHtuJk8KDlxBQWllbQwtUlFRS2IPHxo0aQteTA==ktMtUQ==',
-    'gsscgib-w-hh': 'edvS362OTuS0lFQyR6Dl8+OEXvK19lhfJej8b1/LVI6L1eHuabKStU9is8NdQ8zD+JzBQxn9UPfnk3ZjWDBfiwA07T5O/FSN/CkNhL1kKeaSYKA860vFn5SvMP6eQIAxFPLOMaKXww6yQ4OumEDOWrJjzb9ZvGTo9uiuX2Tqo3Ki0waO52JeEUUJBP/Iznm4VbQv7SjBkq6wbXO0jH/Y8HacZGKn/BKRG668KNgv9JoA9tTpv7eroFKkf2IQXA==',
-    'cfidsgib-w-hh': 'LmPxz3HbZLiXUkpgD+EA4XiuUVF1fd1dX04pSnDC4BWIrJNgVkttaVC0oW6ygbZqsvR+5SiZBDICqC8RO1QEq9vMff2/j6VmVFaZFGqssBuUJxPZaK6V0XLR5NwPdQN5OoMJq8iRuKKr8NosLWRQ8Zjiv328fT4iT7uatDo=',
-    'cfidsgib-w-hh': 'LmPxz3HbZLiXUkpgD+EA4XiuUVF1fd1dX04pSnDC4BWIrJNgVkttaVC0oW6ygbZqsvR+5SiZBDICqC8RO1QEq9vMff2/j6VmVFaZFGqssBuUJxPZaK6V0XLR5NwPdQN5OoMJq8iRuKKr8NosLWRQ8Zjiv328fT4iT7uatDo=',
-    'cfidsgib-w-hh': 'LmPxz3HbZLiXUkpgD+EA4XiuUVF1fd1dX04pSnDC4BWIrJNgVkttaVC0oW6ygbZqsvR+5SiZBDICqC8RO1QEq9vMff2/j6VmVFaZFGqssBuUJxPZaK6V0XLR5NwPdQN5OoMJq8iRuKKr8NosLWRQ8Zjiv328fT4iT7uatDo=',
-    'gsscgib-w-hh': 'edvS362OTuS0lFQyR6Dl8+OEXvK19lhfJej8b1/LVI6L1eHuabKStU9is8NdQ8zD+JzBQxn9UPfnk3ZjWDBfiwA07T5O/FSN/CkNhL1kKeaSYKA860vFn5SvMP6eQIAxFPLOMaKXww6yQ4OumEDOWrJjzb9ZvGTo9uiuX2Tqo3Ki0waO52JeEUUJBP/Iznm4VbQv7SjBkq6wbXO0jH/Y8HacZGKn/BKRG668KNgv9JoA9tTpv7eroFKkf2IQXA==',
-    'gsscgib-w-hh': 'edvS362OTuS0lFQyR6Dl8+OEXvK19lhfJej8b1/LVI6L1eHuabKStU9is8NdQ8zD+JzBQxn9UPfnk3ZjWDBfiwA07T5O/FSN/CkNhL1kKeaSYKA860vFn5SvMP6eQIAxFPLOMaKXww6yQ4OumEDOWrJjzb9ZvGTo9uiuX2Tqo3Ki0waO52JeEUUJBP/Iznm4VbQv7SjBkq6wbXO0jH/Y8HacZGKn/BKRG668KNgv9JoA9tTpv7eroFKkf2IQXA==',
-    'tmr_detect': '0%7C1733433084075',
-    '__ddg10_': '1733433084',
-    '__ddg8_': 'pbaBgS5DfDEdfe1C',
-    'fgsscgib-w-hh': 'jwHV5cc6f6ed1d478d67bcd8c8d760933cd9d785',
-    'fgsscgib-w-hh': 'jwHV5cc6f6ed1d478d67bcd8c8d760933cd9d785',
-}
-
 headers = {
     'accept': 'application/json',
     'accept-language': 'ru,en;q=0.9',
@@ -82,6 +37,6 @@ files = [
     ('captchaText', (None, '')),
 ]
 
-response = requests.post('https://nn.hh.ru/account/login', params={'backurl': '/',}, cookies=cookies, headers=headers, files=files)
+response = requests.post('https://nn.hh.ru/account/login', params={'backurl': '/',}, headers=headers, files=files)
 
 print(response.text)
