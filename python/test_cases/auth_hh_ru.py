@@ -34,4 +34,9 @@ files = [
 
 response = requests.post('https://nn.hh.ru/account/login', params={'backurl': '/',}, headers=headers, files=files)
 
+if response.status_code == 200:
+    print("Авторизация прошла успешно")
+else:
+    print("Произошла ошибка при авторизации")
+
 print(response.text)
