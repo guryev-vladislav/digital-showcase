@@ -15,5 +15,13 @@
                 "PASSWORD": "v6p-Jm5-wrg-vgN",
             },
         },
+        {
+            "name": "telephone_exchange",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "unn\\python\\probability-lab\\telephone_exchange.py",
+            "console": "integratedTerminal",
+        },
+
     ]
 }
