@@ -1,14 +1,27 @@
 import numpy as np
 import matplotlib.pyplot as plt
 import collections
+import math
+import random
 
 def poisson_random_variable(lambd, t, num_simulations):
-    """Generates random numbers from a Poisson distribution."""
-    return np.random.poisson(lam=lambd * t, size=num_simulations)
+    """Generates random numbers from a Poisson distribution using inverse transform sampling."""
+    results = []
+    for _ in range(num_simulations):
+        u = random.random()  # Generate a uniform random number between 0 and 1
+        k = 0
+        p = math.exp(-lambd * t)
+        F = p
+        while u > F:
+            k += 1
+            p *= (lambd * t) / k
+            F += p
+        results.append(k)
+    return results
 
 def create_frequency_table(data):
     """Creates a frequency table for a discrete random variable."""
-    if data.size == 0:  # Проверка на пустоту NumPy массива
+    if len(data) == 0:  # Check for empty list - more pythonic than checking for numpy array size
         return {"yi": [], "ni": [], "ni/n": []}
 
     counter = collections.Counter(data)
@@ -20,7 +33,6 @@ def create_frequency_table(data):
     ni_n = [item[1] / n for item in sorted_items]
 
     return {"yi": yi, "ni": ni, "ni/n": ni_n}
-
 
 def print_frequency_table(frequency_table):
     """Prints the frequency table in the specified format."""
@@ -68,7 +80,7 @@ def main():
             print("Некорректный ввод. Пожалуйста, введите целое число.")
 
     results = poisson_random_variable(lambd, t, num_simulations)
-    frequency_table = create_frequency_table(results)
+    frequency_table = create_frequency_table(np.array(results))  # Convert list to numpy array here
 
     print("\nРезультаты розыгрыша:")
     print(results)  # Вывод сырых данных
