@@ -3,6 +3,7 @@ import matplotlib.pyplot as plt
 import collections
 import math
 import random
+from scipy import stats
 
 def poisson_random_variable(lambd, t, num_simulations):
     """Generates random numbers from a Poisson distribution using inverse transform sampling."""
@@ -46,6 +47,87 @@ def print_frequency_table(frequency_table):
         print(f"{frequency_table['yi'][i]}\t{frequency_table['ni'][i]}\t{frequency_table['ni/n'][i]:.4f}")
 
 
+def calculate_characteristics(data, lambd, t):
+    """Calculates theoretical and empirical characteristics of the Poisson distribution."""
+    n = len(data)
+    x_bar = np.mean(data)  # Sample mean
+    variance = np.var(data, ddof=1)  # Sample variance (unbiased estimator)
+    theoretical_mean = lambd * t
+    theoretical_variance = lambd * t
+    median = np.median(data)
+    # Robust measure of central tendency (median)
+
+    # Range
+    rb = max(data) - min(data)
+
+    return {
+        "Eη": theoretical_mean,
+        "x": x_bar,
+        "abs_diff_mean": abs(theoretical_mean - x_bar),
+        "Dη": theoretical_variance,
+        "S^2": variance,
+        "abs_diff_variance": abs(theoretical_variance - variance),
+        "Me": median,
+        "Rb": rb,
+    }
+
+
+def plot_cdf(data, lambd, t):
+    """Plots the theoretical and empirical CDFs."""
+    n = len(data)
+    sorted_data = np.sort(data)
+    empirical_cdf = np.arange(1, n + 1) / n
+
+    # Theoretical CDF for Poisson distribution
+    x_values = np.arange(max(data) + 1)
+    theoretical_cdf = np.cumsum(stats.poisson.pmf(x_values, lambd * t))
+
+    plt.step(sorted_data, empirical_cdf, label="Выборочная функция распределения")
+    plt.step(x_values, theoretical_cdf, label="Теоретическая функция распределения")
+    plt.xlabel("Число вызовов (η)")
+    plt.ylabel("F(x)")
+    plt.title("Функции распределения (выборочная и теоретическая)")
+    plt.legend()
+    plt.show()
+
+
+def kolmogorov_smirnov_test(data, lambd, t):
+    """Performs Kolmogorov-Smirnov test."""
+    from scipy import stats
+    n = len(data)
+    x_values = np.arange(max(data) + 1)
+    theoretical_cdf = np.cumsum(stats.poisson.pmf(x_values, lambd * t))
+
+    # Find the maximum absolute difference between empirical and theoretical CDFs
+    D = max(abs(np.interp(x_values, np.sort(data), np.arange(1, n + 1) / n) - theoretical_cdf))
+    return D
+
+
+def goodness_of_fit_table(frequency_table, lambd, t):
+    """Generates the goodness of fit table."""
+    yi = frequency_table['yi']
+    ni = frequency_table['ni']
+    n = sum(ni)
+    theoretical_probs = [stats.poisson.pmf(y, lambd * t) for y in yi]
+    ni_n = [i / n for i in ni]
+    max_deviation = max([abs(a - b) for a, b in zip(ni_n, theoretical_probs)])
+
+    table_data = {
+        "yj": yi,
+        "P({η = yj})": theoretical_probs,
+        "nj/n": ni_n,
+        "Max Deviation": max_deviation
+    }
+
+    return table_data
+
+
+def print_goodness_of_fit_table(table_data):
+    print("yj\tP({η=yj})\tnj/n")
+    for i in range(len(table_data['yj'])):
+        print(f"{table_data['yj'][i]}\t{table_data['P({η = yj})'][i]:.4f}\t{table_data['nj/n'][i]:.4f}")
+    print(f"Максимальное отклонение: {table_data['Max Deviation']:.4f}")
+
 def main():
     """Main function to handle user interaction and simulation."""
 
@@ -79,15 +161,28 @@ def main():
         except ValueError:
             print("Некорректный ввод. Пожалуйста, введите целое число.")
 
+    from scipy import stats
     results = poisson_random_variable(lambd, t, num_simulations)
-    frequency_table = create_frequency_table(np.array(results))  # Convert list to numpy array here
+    frequency_table = create_frequency_table(np.array(results))
+    characteristics = calculate_characteristics(results, lambd, t)
+    goodness_of_fit_data = goodness_of_fit_table(frequency_table, lambd, t)
+    kolmogorov_distance = kolmogorov_smirnov_test(results, lambd, t)
 
     print("\nРезультаты розыгрыша:")
-    print(results)  # Вывод сырых данных
-
+    print(results)
     print_frequency_table(frequency_table)
 
-    # Гистограмма (опционально)
+    print("\nЧисловые характеристики:")
+    print("Eη\tx\t|Eη - x|\tDη\tS^2\t|Dη - S^2|\tMe\tRb")
+    print(
+        f"{characteristics['Eη']:.4f}\t{characteristics['x']:.4f}\t{characteristics['abs_diff_mean']:.4f}\t{characteristics['Dη']:.4f}\t{characteristics['S^2']:.4f}\t{characteristics['abs_diff_variance']:.4f}\t{characteristics['Me']:.4f}\t{characteristics['Rb']:.4f}")
+
+    print("\nТаблица согласия:")
+    print_goodness_of_fit_table(goodness_of_fit_data)
+
+    print(f"\nРасстояние Колмогорова-Смирнова: {kolmogorov_distance:.4f}")
+
+    plot_cdf(results, lambd, t)
     plt.hist(results, bins=range(min(results), max(results) + 2), align='left', rwidth=0.8)
     plt.xlabel("Число вызовов (η)")
     plt.ylabel("Частота")
