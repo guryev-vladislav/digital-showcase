@@ -46,43 +46,59 @@ def print_frequency_table(frequency_table):
     for i in range(num_rows):
         print(f"{frequency_table['yi'][i]}\t{frequency_table['ni'][i]}\t{frequency_table['ni/n'][i]:.4f}")
 
-
-def calculate_characteristics(data, lambd, t):
-    """Calculates theoretical and empirical characteristics of the Poisson distribution."""
+def calculate_sample_variance(data):
+    """Calculates the sample variance manually."""
     n = len(data)
-    x_bar = np.mean(data)  # Sample mean
-    variance = np.var(data, ddof=1)  # Sample variance (unbiased estimator)
-    theoretical_mean = lambd * t
-    theoretical_variance = lambd * t
-    median = np.median(data)
-    # Robust measure of central tendency (median)
+    mean = sum(data) / n
+    sum_sq_diff = sum((x - mean) ** 2 for x in data)
+    return sum_sq_diff /n
 
-    # Range
-    rb = max(data) - min(data)
+
+def calculate_sample_median(data):
+    """Calculates the sample median manually."""
+    sorted_data = sorted(data)
+    n = len(sorted_data)
+    if n % 2 == 0:
+        mid1 = sorted_data[n // 2 - 1]
+        mid2 = sorted_data[n // 2]
+        median = (mid1 + mid2) / 2
+    else:
+        median = sorted_data[n // 2]
+    return median
+
+def calculate_characteristics(results, lambd, t):
+    """Calculates numerical characteristics of the sample."""
+    E_eta = lambd * t
+    x_bar = np.mean(results)
+    S_squared = calculate_sample_variance(results)  # Manual sample variance
+    D_eta = E_eta
+    median = calculate_sample_median(results)  # Manual sample median
+    range_val = np.max(results) - np.min(results)
 
     return {
-        "Eη": theoretical_mean,
+        "Eη": E_eta,
         "x": x_bar,
-        "abs_diff_mean": abs(theoretical_mean - x_bar),
-        "Dη": theoretical_variance,
-        "S^2": variance,
-        "abs_diff_variance": abs(theoretical_variance - variance),
+        "abs_diff_mean": abs(E_eta - x_bar),
+        "Dη": D_eta,
+        "S^2": S_squared,
+        "abs_diff_variance": abs(D_eta - S_squared),
         "Me": median,
-        "Rb": rb,
+        "Rb": range_val
     }
 
 
-def plot_cdf(data, lambd, t):
+def plot_cdf(results, lambd, t):
     """Plots the theoretical and empirical CDFs."""
-    n = len(data)
-    sorted_data = np.sort(data)
+    n = len(results)
+    sorted_data = np.sort(results)
     empirical_cdf = np.arange(1, n + 1) / n
+    empirical_cdf_shifted = empirical_cdf - 0.2
 
     # Theoretical CDF for Poisson distribution
-    x_values = np.arange(max(data) + 1)
+    x_values = np.arange(max(results) + 1)
     theoretical_cdf = np.cumsum(stats.poisson.pmf(x_values, lambd * t))
 
-    plt.step(sorted_data, empirical_cdf, label="Выборочная функция распределения")
+    plt.step(sorted_data, empirical_cdf_shifted, label="Выборочная функция распределения (смещенная)")
     plt.step(x_values, theoretical_cdf, label="Теоретическая функция распределения")
     plt.xlabel("Число вызовов (η)")
     plt.ylabel("F(x)")
