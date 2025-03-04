@@ -211,7 +211,6 @@ def print_hypothesis_test_results(chi_squared_statistic, p_value, critical_value
     print(f"Решение: {decision}")
 
 def main():
-    """Главная функция."""
     print("Моделирование потока вызовов Пуассона.")
 
     while True:
