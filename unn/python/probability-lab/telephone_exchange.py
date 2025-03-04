@@ -22,7 +22,7 @@ def poisson_random_variable(lambd, t, num_simulations):
 
 def create_frequency_table(data):
     """Создает таблицу частот."""
-    if not data: # Проверка на пустой список
+    if data.size == 0: # Проверка на пустой numpy array
         return {"yi": [], "ni": [], "ni/n": []}
     counter = collections.Counter(data)
     n = len(data)
@@ -118,7 +118,8 @@ def get_interval_boundaries():
     while True:
         try:
             k = int(input("Введите число интервалов k ( > 1): ")) # Уточнение в запросе
-            if k <= 1: raise ValueError
+            if k <= 1:
+                raise ValueError
             break
         except ValueError:
             print("Некорректный ввод. Введите целое число > 1.")
@@ -129,9 +130,11 @@ def get_interval_boundaries():
         while True:
             try:
                 boundaries = [float(b) for b in input().split()]
-                if len(boundaries) != k - 1: raise ValueError
+                if len(boundaries) != k - 1:
+                    raise ValueError
                 for i in range(len(boundaries) - 1):
-                    if boundaries[i] >= boundaries[i+1]: raise ValueError
+                    if boundaries[i] >= boundaries[i+1]:
+                        raise ValueError
                 break
             except ValueError:
                 print(f"Некорректный ввод. Введите {k-1} чисел по возрастанию.") # Уточнение ошибки
@@ -157,7 +160,8 @@ def calculate_theoretical_interval_probabilities(lambd, t, k, boundaries):
         for i in range(k - 2):
             probs.append(cdf(boundaries[i+1]) - cdf(boundaries[i])) # Интервалы [zi, z(i+1))
         probs.append(1 - cdf(boundaries[-1])) # Интервал [z(k-1), +inf)
-    else: raise ValueError("k должно быть > 1") # Для ясности, хотя k=1 уже исключено в get_interval_boundaries
+    else:
+        raise ValueError("k должно быть > 1") # Для ясности, хотя k=1 уже исключено в get_interval_boundaries
     return probs
 
 def calculate_observed_interval_frequencies(results, k, boundaries):
@@ -170,13 +174,16 @@ def calculate_observed_interval_frequencies(results, k, boundaries):
         freqs[1] = len(results) - freqs[0] # Оптимизация расчета для 2 интервалов
     elif k > 2:
         for res in results:
-            if res < boundaries[0]: freqs[0] += 1
-            elif res >= boundaries[-1]: freqs[-1] += 1
+            if res < boundaries[0]:
+                freqs[0] += 1
+            elif res >= boundaries[-1]:
+                freqs[-1] += 1
             else:
                 for i in range(k - 2):
                     if boundaries[i] <= res < boundaries[i+1]:
                         freqs[i+1] += 1; break
-    else: raise ValueError("k должно быть > 1") # Для ясности
+    else:
+        raise ValueError("k должно быть > 1") # Для ясности
     return freqs
 
 def calculate_chi_squared_statistic(observed_frequencies, expected_frequencies):
@@ -205,65 +212,114 @@ def print_hypothesis_test_results(chi_squared_statistic, p_value, critical_value
 
 def main():
     """Главная функция."""
-    print("Моделирование потока вызовов Пуассона.") # Краткое приветствие
+    print("Моделирование потока вызовов Пуассона.")
 
     while True:
-        try: lambd = float(input("Введите интенсивность λ (> 0): ")); if lambd <= 0: raise ValueError
-        except ValueError: print("Некорректный ввод. Введите положительное число.")
-        else: break # Упрощенная структура цикла ввода
+        try:
+            lambd = float(input("Введите интенсивность λ (> 0): "))
+            if lambd <= 0:
+                raise ValueError
+        except ValueError:
+            print("Некорректный ввод. Введите положительное число.")
+        else:
+            break
 
     while True:
-        try: t = float(input("Введите время наблюдения t (> 0): ")); if t <= 0: raise ValueError
-        except ValueError: print("Некорректный ввод. Введите положительное число.")
-        else: break
+        try:
+            t = float(input("Введите время наблюдения t (> 0): "))
+            if t <= 0:
+                raise ValueError
+        except ValueError:
+            print("Некорректный ввод. Введите положительное число.")
+        else:
+            break
 
     while True:
-        try: num_simulations = int(input("Введите кол-во розыгрышей (> 0): ")); if num_simulations <= 0: raise ValueError
-        except ValueError: print("Некорректный ввод. Введите целое число > 0.")
-        else: break
+        try:
+            num_simulations = int(input("Введите кол-во розыгрышей в одном эксперименте (> 0): "))
+            if num_simulations <= 0:
+                raise ValueError
+        except ValueError:
+            print("Некорректный ввод. Введите целое число > 0.")
+        else:
+            break
 
     k_intervals, interval_boundaries = get_interval_boundaries()
     theoretical_interval_probs = calculate_theoretical_interval_probabilities(lambd, t, k_intervals, interval_boundaries)
 
     print("\nТеоретические вероятности интервалов:")
-    for i, prob in enumerate(theoretical_interval_probs): # enumerate для краткости и ясности
+    for i, prob in enumerate(theoretical_interval_probs):
         print(f"Интервал {i+1}: P(Δ{i+1}) = {prob:.4f}")
 
     while True:
-        try: alpha = float(input("Введите уровень значимости α (0 < α < 1): ")); if not 0 < alpha < 1: raise ValueError
-        except ValueError: print("Некорректный ввод. Введите число от 0 до 1.")
-        else: break
+        try:
+            alpha = float(input("Введите уровень значимости α (0 < α < 1): "))
+            if not 0 < alpha < 1:
+                raise ValueError
+        except ValueError:
+            print("Некорректный ввод. Введите число от 0 до 1.")
+        else:
+            break
 
-    results = poisson_random_variable(lambd, t, num_simulations)
+    while True:
+        try:
+            num_iterations = int(input("Введите количество итераций n для проверки ( > 0): "))
+            if num_iterations <= 0:
+                raise ValueError
+            break
+        except ValueError:
+            print("Некорректный ввод. Введите целое число > 0.")
+        else:
+            break
+
+    h0_accepted_count = 0  # Счетчик случаев, когда H0 принимается
+
+    for iteration in range(num_iterations):
+        results = poisson_random_variable(lambd, t, num_simulations)
+        frequency_table = create_frequency_table(np.array(results))
+        observed_interval_freqs = calculate_observed_interval_frequencies(results, k_intervals, interval_boundaries)
+        expected_interval_freqs = [prob * num_simulations for prob in theoretical_interval_probs]
+        chi_sq_stat = calculate_chi_squared_statistic(observed_interval_freqs, expected_interval_freqs)
+        degrees_freedom = k_intervals - 1
+        critical_val, p_val, hypothesis_decision = perform_chi_squared_test(chi_sq_stat, degrees_freedom, alpha)
+
+        if hypothesis_decision == "H0 принимается":
+            h0_accepted_count += 1
+
+        # Раскомментируйте, если хотите видеть результаты каждого теста
+        # print(f"\nИтерация {iteration+1}:")
+        # print_hypothesis_test_results(chi_sq_stat, p_val, critical_val, alpha, hypothesis_decision)
+
+
+    print(f"\nИз {num_iterations} итераций, H0 (нулевая гипотеза) была принята {h0_accepted_count} раз.")
+    print(f"Это составляет { (h0_accepted_count / num_iterations) * 100:.2f}% от общего числа итераций.")
+    print("Уровень значимости α =", alpha)
+
+
+    results = poisson_random_variable(lambd, t, num_simulations) # Запускаем еще раз для финальных графиков
     frequency_table = create_frequency_table(np.array(results))
     characteristics = calculate_characteristics(results, lambd, t)
     goodness_of_fit_data = goodness_of_fit_table(frequency_table, lambd, t)
     kolmogorov_distance = kolmogorov_smirnov_test(results, lambd, t)
 
-    print("\nРезультаты розыгрыша:")
+    print("\nРезультаты финального розыгрыша (для графиков):")
     print_frequency_table(frequency_table)
 
     print("\nЧисловые характеристики:")
     print("Eη\tx\t|Eη - x|\tDη\tS^2\t|Dη - S^2|\tMe\tRb")
-    char = characteristics # Сокращение имени для удобства
+    char = characteristics
     print(f"{char['Eη']:.4f}\t{char['x']:.4f}\t{char['abs_diff_mean']:.4f}\t{char['Dη']:.4f}\t{char['S^2']:.4f}\t{char['abs_diff_variance']:.4f}\t{char['Me']:.4f}\t{char['Rb']:.4f}")
 
-    print("\nТаблица согласия (макс. отклонение частот):") # Уточнение заголовка
+    print("\nТаблица согласия (макс. отклонение частот):")
     print_goodness_of_fit_table(goodness_of_fit_data)
     print(f"\nРасстояние Колмогорова-Смирнова: {kolmogorov_distance:.4f}")
 
-    observed_interval_freqs = calculate_observed_interval_frequencies(results, k_intervals, interval_boundaries)
-    expected_interval_freqs = [prob * num_simulations for prob in theoretical_interval_probs]
-    chi_sq_stat = calculate_chi_squared_statistic(observed_interval_freqs, expected_interval_freqs)
-    degrees_freedom = k_intervals - 1
-    critical_val, p_val, hypothesis_decision = perform_chi_squared_test(chi_sq_stat, degrees_freedom, alpha)
-    print_hypothesis_test_results(chi_sq_stat, p_val, critical_val, alpha, hypothesis_decision)
 
     plot_cdf(results, lambd, t)
     plt.hist(results, bins=range(min(results), max(results) + 2), align='left', rwidth=0.8)
     plt.xlabel("Число вызовов (η)")
     plt.ylabel("Частота")
-    plt.title(f"Гистограмма Пуассона (λ={lambd}, t={t}, {num_simulations} симуляций)") # Сокращенный заголовок
+    plt.title(f"Гистограмма Пуассона (λ={lambd}, t={t}, {num_simulations} симуляций)")
     plt.xticks(range(min(results), max(results) + 1))
     plt.show()
 
