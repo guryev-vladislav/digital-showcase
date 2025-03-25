@@ -1,23 +1,8 @@
 import numpy as np
 import matplotlib.pyplot as plt
+from scipy.stats import norm, lognorm
 
 def random_walk_first_hitting_time(a, b, T, N):
-    """
-    Вычисляет момент первого достижения уровня T для случайного блуждания.
-
-    Args:
-        a (float): Левая граница равномерного распределения.
-        b (float): Правая граница равномерного распределения.
-        T (float): Уровень достижения.
-        N (int): Объем выборки.
-
-    Returns:
-        tuple: Кортеж, содержащий:
-            - hitting_times (list): Список моментов первого достижения уровня T.
-            - mean_hitting_time (float): Выборочное среднее моментов первого достижения.
-            - variance_hitting_time (float): Выборочная дисперсия моментов первого достижения.
-    """
-
     hitting_times = []
     for _ in range(N):
         X = 0
@@ -33,18 +18,38 @@ def random_walk_first_hitting_time(a, b, T, N):
 
     return hitting_times, mean_hitting_time, variance_hitting_time
 
-def plot_hitting_time_distribution(hitting_times):
+def plot_hitting_time_cdf(hitting_times):
     """
-    Строит выборочную функцию распределения для моментов первого достижения.
+    Строит эмпирическую функцию распределения (CDF) и накладывает нормальное и логнормальное распределения.
 
     Args:
         hitting_times (list): Список моментов первого достижения уровня T.
     """
 
-    plt.hist(hitting_times, bins=20, density=True, alpha=0.6, color='g')
+    sorted_hitting_times = np.sort(hitting_times)
+    cdf = np.arange(1, len(sorted_hitting_times) + 1) / len(sorted_hitting_times)
+
+    # Оценка параметров нормального распределения
+    mean_est = np.mean(hitting_times)
+    std_est = np.std(hitting_times)
+
+    # Генерация значений нормального распределения
+    norm_cdf = norm.cdf(sorted_hitting_times, mean_est, std_est)
+
+    # Оценка параметров логнормального распределения
+    shape, loc, scale = lognorm.fit(hitting_times, floc=0)
+
+    # Генерация значений логнормального распределения
+    lognorm_cdf = lognorm.cdf(sorted_hitting_times, shape, loc=loc, scale=scale)
+
+    # Построение графика
+    plt.plot(sorted_hitting_times, cdf, label='Эмпирическая CDF')
+    plt.plot(sorted_hitting_times, norm_cdf, label='Нормальное распределение', linestyle='--')
+    plt.plot(sorted_hitting_times, lognorm_cdf, label='Логнормальное распределение', linestyle=':')
     plt.xlabel('Момент первого достижения уровня T')
-    plt.ylabel('Вероятность')
-    plt.title('Выборочная функция распределения моментов первого достижения')
+    plt.ylabel('CDF')
+    plt.title('Эмпирическая CDF и распределения')
+    plt.legend()
     plt.show()
 
 # Запрашиваем параметры у пользователя
@@ -52,11 +57,6 @@ a = float(input("Введите левую границу равномерног
 b = float(input("Введите правую границу равномерного распределения (b): "))
 T = float(input("Введите уровень достижения (T): "))
 N = int(input("Введите объем выборки (N): "))
-# Задаем параметры
-a = -1
-b = 1
-T = 10
-N = 1000
 
 # Выполняем моделирование
 hitting_times, mean_hitting_time, variance_hitting_time = random_walk_first_hitting_time(a, b, T, N)
@@ -66,4 +66,4 @@ print(f"Выборочное среднее: {mean_hitting_time}")
 print(f"Выборочная дисперсия: {variance_hitting_time}")
 
 # Строим график
-plot_hitting_time_distribution(hitting_times)
+plot_hitting_time_cdf(hitting_times)
