@@ -7,29 +7,29 @@
 
 using namespace std;
 
-// Функция для правой части уравнения
+// Function for the right-hand side of the equation
 double f(double x, double y) {
     return -(4 - 4 * x * x - 4 * y * y) * exp(1 - x * x - y * y);
 }
 
-// Граничные условия
+// Boundary conditions
 double mu1(double y) { return exp(-y * y); } // u(-1, y)
 double mu2(double y) { return exp(-y * y); } // u(1, y)
 double mu3(double x) { return exp(-x * x); } // u(x, -1)
 double mu4(double x) { return exp(-x * x); } // u(x, 1)
 
-// Точное решение
+// Exact solution
 double trueSolution(double x, double y) {
     return exp(1 - x*x - y*y);
 }
 
-// Инициализация начального приближения (линейная интерполяция по x)
+// Initialization of the initial approximation (linear interpolation along x)
 vector<vector<double>> initialize(int n, int m) {
     vector<vector<double>> u(n + 1, vector<double>(m + 1, 0.0));
-    double h = 2.0 / n; // Шаг по x
-    double k = 2.0 / m; // Шаг по y
+    double h = 2.0 / n; // Step along x
+    double k = 2.0 / m; // Step along y
 
-    // Применение граничных условий
+    // Applying boundary conditions
     for (int j = 0; j <= m; ++j) {
         double y = -1.0 + j * k;
         u[0][j] = mu1(y);
@@ -41,19 +41,19 @@ vector<vector<double>> initialize(int n, int m) {
         u[i][m] = mu4(x);
     }
 
-    // Линейная интерполяция для внутренних точек
+    // Linear interpolation for internal points
     for (int i = 1; i < n; ++i) {
         double x = -1.0 + i * h;
         for (int j = 1; j < m; ++j) {
             double y = -1.0 + j * k;
-            u[i][j] = 0.5 * (u[0][j] + u[n][j]); // Линейная интерполяция вдоль x
+            u[i][j] = 0.5 * (u[0][j] + u[n][j]); // Linear interpolation along x
         }
     }
 
     return u;
 }
 
-// Метод верхней релаксации
+// Successive Over-Relaxation (SOR) method
 vector<vector<double>> solveSOR(int n, int m, double omega, double eps, int Nmax, double& residual, double& achieved_diff) {
     vector<vector<double>> u = initialize(n, m);
     double h = 2.0 / n;
@@ -65,7 +65,7 @@ vector<vector<double>> solveSOR(int n, int m, double omega, double eps, int Nmax
     int iter = 0;
 
     residual = 0.0;
-    achieved_diff = diff;// Точность метода
+    achieved_diff = diff;// Method accuracy
 
     while (diff > eps && iter < Nmax) {
         diff = 0.0;
@@ -90,12 +90,12 @@ vector<vector<double>> solveSOR(int n, int m, double omega, double eps, int Nmax
         achieved_diff = diff;
     }
 
-    cout << "Метод SOR завершен за " << iter << " итераций." << endl;
+    cout << "SOR method completed in " << iter << " iterations." << endl;
     if (iter == Nmax) {
-        cout << "Предупреждение: Достигнуто максимальное количество итераций." << endl;
+        cout << "Warning: Maximum number of iterations reached." << endl;
     }
 
-    // Вычисление невязки
+    // Residual calculation
     for (int i = 1; i < n; ++i) {
         for (int j = 1; j < m; ++j) {
             double x = -1.0 + i * h;
@@ -114,19 +114,19 @@ vector<vector<double>> solveSOR(int n, int m, double omega, double eps, int Nmax
 
 int main() {
     setlocale(LC_ALL,"Rus");
-    int n = 5; // Число разбиений по x
-    int m = 5; // Число разбиений по y
-    double omega = 1.7; // Параметр релаксации (0 < omega < 2)
-    double eps = 1e-6; // Точность
-    int Nmax = 10000; // Максимальное число итераций
+    int n = 5; // Number of partitions along x
+    int m = 5; // Number of partitions along y
+    double omega = 1.7; // Relaxation parameter (0 < omega < 2)
+    double eps = 1e-6; // Accuracy
+    int Nmax = 100000; // Maximum number of iterations
     double max_error, residual, achieved_diff;
     int max_error_i, max_error_j;
 
     vector<vector<double>> solution = solveSOR(n, m, omega, eps, Nmax, residual, achieved_diff);
 
-    cout << fixed << setprecision(6); // Установка точности вывода
+    cout << fixed << setprecision(6); // Set output precision
 
-    // Вычисление максимальной погрешности
+    // Maximum error calculation
     max_error = 0.0;
     max_error_i = -1;
     max_error_j = -1;
@@ -151,7 +151,7 @@ int main() {
         }
     }
 
-    // Вывод погрешности и невязки
+    // Output error and residual
     if (!isnan(max_error)) {
         cout << "Maximum error: " << max_error << endl;
         cout << "Reached at element u[" << max_error_i << "][" << max_error_j << "]" << endl;
@@ -169,8 +169,8 @@ int main() {
 
     cout << "Maximum residual: " << residual << endl;
 
-    // Вывод численного и точного решения
-    cout << "\nЧисленное решение - Точное решение = Погрешность:" << endl;
+    // Output numerical and exact solutions
+    cout << "\nNumerical solution - Exact solution = Error:" << endl;
 
     for (int i = 0; i <= n; ++i) {
         for (int j = 0; j <= m; ++j) {
