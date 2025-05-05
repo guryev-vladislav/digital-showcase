@@ -1,37 +1,9 @@
 import numpy as np
 import matplotlib.pyplot as plt
 
-def linear_regression_analysis(a_true, b_true, sigma_sq, n, m, t1=0, t2=0):
-    """
-    Выполняет анализ одномерной линейной регрессии.
-
-    Args:
-        a_true (float): Истинный коэффициент наклона.
-        b_true (float): Истинный коэффициент сдвига.
-        sigma_sq (float): Дисперсия случайных ошибок.
-        n (int): Размер первой выборки.
-        m (int): Размер дополнительной выборки.
-        t1 (float): Левая граница отрезка для случайного выбора x (по умолчанию 0).
-        t2 (float): Правая граница отрезка для случайного выбора x (по умолчанию 0).
-
-    Returns:
-        tuple: Кортеж, содержащий:
-            - a_estimated (float): Оцененный коэффициент наклона.
-            - b_estimated (float): Оцененный коэффициент сдвига.
-            - r_squared (float): Коэффициент детерминации R^2.
-            - y_predicted_additional (np.ndarray): Предсказанные значения для дополнительной выборки (по оцененной линии).
-            - y_additional (np.ndarray): Истинные значения для дополнительной выборки (на истинной линии).
-    """
-    # Ввести коэффициенты и получить первую выборку
-    if t1 == 0 and t2 == 0:
-        x = np.arange(1, n + 1)
-    else:
-        x = np.random.uniform(t1, t2, n)
-        x.sort() # Для более наглядного графика
-    epsilon = np.random.normal(0, np.sqrt(sigma_sq), n)
-    y = a_true * x + b_true + epsilon
-
-    # Оценить коэффициенты линейной регрессии вручную
+def calculate_linear_regression(x, y):
+    """Вычисляет параметры линейной регрессии."""
+    n = len(x)
     x_mean = np.mean(x)
     y_mean = np.mean(y)
 
@@ -45,7 +17,6 @@ def linear_regression_analysis(a_true, b_true, sigma_sq, n, m, t1=0, t2=0):
 
     b_estimated = y_mean - a_estimated * x_mean
 
-    # Вычислить коэффициент детерминации R^2 вручную
     y_predicted = a_estimated * x + b_estimated
     SSE = np.sum((y - y_predicted)**2)
     SST = np.sum((y - y_mean)**2)
@@ -55,57 +26,74 @@ def linear_regression_analysis(a_true, b_true, sigma_sq, n, m, t1=0, t2=0):
     else:
         r_squared = 1 - (SSE / SST)
 
-    print(f"Оцененный коэффициент наклона (a*): {a_estimated:.4f}")
-    print(f"Оцененный коэффициент сдвига (b*): {b_estimated:.4f}")
-    print(f"Коэффициент детерминации (R^2): {r_squared:.4f}")
+    return a_estimated, b_estimated, r_squared, y_predicted
 
-    # Получить дополнительную выборку и сравнить предсказанные значения
-    if t1 == 0 and t2 == 0:
-        x_additional = np.arange(n + 1, n + m + 1)
-    else:
-        x_additional = np.random.uniform(t1, t2, m)
-        x_additional.sort() # Для более наглядного графика
-    # Генерация дополнительной выборки ТОЧНО на истинной линии
-    y_additional = a_true * x_additional + b_true
-    y_predicted_additional = a_estimated * x_additional + b_estimated
-
-    print("\nСравнение предсказанных и истинных значений для дополнительной выборки:")
-    for i in range(m):
-        print(f"x = {x_additional[i]:.4f}, y_истинное = {y_additional[i]:.4f}, y_предсказанное = {y_predicted_additional[i]:.4f}")
-
-    # Визуализация результатов
+def visualize_linear_regression(x_train, y_train, y_predicted_train, x_test=None, y_test=None, y_predicted_test=None, a_estimated=None, b_estimated=None, r_squared=None, t1=None, t2=None):
+    """Визуализирует результаты линейной регрессии."""
     plt.figure(figsize=(10, 6))
-    plt.scatter(x, y, label='Первая выборка (обучающая)')
-    plt.plot(x, a_true * x + b_true, 'g-', label=f'Истинная линия: y = {a_true}x + {b_true}')
-    plt.plot(x, y_predicted, 'r--', label=f'Оцененная линия: ŷ = {a_estimated:.2f}x + {b_estimated:.2f}')
-    plt.scatter(x_additional, y_additional, color='orange', marker='o', label='Дополнительная выборка (на истинной линии)')
-    plt.plot(x_additional, y_predicted_additional, 'm--', label='Предсказанные значения для доп. выборки')
+    plt.scatter(x_train, y_train, label='Обучающие данные')
+    if a_estimated is not None and b_estimated is not None:
+        plt.plot(x_train, y_predicted_train, 'r--', label=f'Оцененная линия: ŷ = {a_estimated:.2f}x + {b_estimated:.2f}')
+    if x_test is not None and y_test is not None:
+        plt.scatter(x_test, y_test, color='orange', marker='o', label='Тестовые данные')
+        if y_predicted_test is not None:
+            plt.plot(x_test, y_predicted_test, 'm--', label='Предсказанные значения на тесте')
     plt.xlabel('x')
     plt.ylabel('y')
-    plt.title('Одномерная линейная регрессия')
+    plt.title('Линейная регрессия')
     plt.legend()
     plt.grid(True)
 
-    # Добавление текстовой аннотации с истинными параметрами и R^2
-    text = '\n'.join((
-        f'true_a = {a_true:.2f}',
-        f'true_b = {b_true:.2f}',
-        f'sigma = {np.sqrt(sigma_sq):.2f}',
-        f'n = {n}',
-        f'm = {m}',
-        f'R^2 = {r_squared:.2f}',
-        f't1 = {t1:.2f}',
-        f't2 = {t2:.2f}'
-    ))
+    text_parts = [
+        f'n = {len(x_train)}'
+    ]
+    if x_test is not None:
+        text_parts.append(f'm = {len(x_test)}')
+    if r_squared is not None:
+        text_parts.append(f'R^2 = {r_squared:.2f}')
+    if t1 is not None and t2 is not None:
+        text_parts.append(f'x_min = {t1:.2f}')
+        text_parts.append(f'x_max = {t2:.2f}')
 
-    # Эти координаты определяют положение текста
+    text = '\n'.join(text_parts)
     props = dict(boxstyle='round', facecolor='wheat', alpha=0.5)
     plt.text(0.05, 0.95, text, transform=plt.gca().transAxes, fontsize=10,
             verticalalignment='top', bbox=props)
 
     plt.show()
 
-    return a_estimated, b_estimated, r_squared, y_predicted_additional, y_additional
+def linear_regression_analysis(a_true, b_true, sigma_sq, n, m, t1=0, t2=0):
+    """
+    Выполняет анализ линейной регрессии, генерируя синтетические данные и визуализируя результат.
+    Эта функция теперь использует calculate_linear_regression и visualize_linear_regression.
+    """
+    if t1 == 0 and t2 == 0:
+        x_train = np.arange(1, n + 1)
+        x_test = np.arange(n + 1, n + m + 1)
+    else:
+        x_train = np.random.uniform(t1, t2, n)
+        x_train.sort()
+        x_test = np.random.uniform(t1, t2, m)
+        x_test.sort()
+
+    epsilon_train = np.random.normal(0, np.sqrt(sigma_sq), n)
+    y_train = a_true * x_train + b_true + epsilon_train
+    y_test_true = a_true * x_test + b_true
+
+    a_estimated, b_estimated, r_squared, y_predicted_train = calculate_linear_regression(x_train, y_train)
+    y_predicted_test = a_estimated * x_test + b_estimated
+
+    print(f"Оцененный коэффициент наклона (a*): {a_estimated:.4f}")
+    print(f"Оцененный коэффициент сдвига (b*): {b_estimated:.4f}")
+    print(f"Коэффициент детерминации (R^2): {r_squared:.4f}")
+
+    print("\nСравнение предсказанных и истинных значений для дополнительной выборки:")
+    for i in range(m):
+        print(f"x = {x_test[i]:.4f}, y_истинное = {y_test_true[i]:.4f}, y_предсказанное = {y_predicted_test[i]:.4f}")
+
+    visualize_linear_regression(x_train, y_train, y_predicted_train, x_test, y_test_true, y_predicted_test, a_estimated, b_estimated, r_squared, t1, t2)
+
+    return a_estimated, b_estimated, r_squared, y_predicted_test, y_test_true
 
 if __name__ == "__main__":
     true_a = float(input("Введите истинный коэффициент a: "))
@@ -115,7 +103,6 @@ if __name__ == "__main__":
     m_additional_samples = int(input("Введите размер дополнительной выборки (m): "))
     t1_input = float(input("Введите левую границу для x (t1, 0 - по умолчанию): "))
     t2_input = float(input("Введите правую границу для x (t2, 0 - по умолчанию): "))
-
 
     # Запускаем анализ линейной регрессии
     estimated_a, estimated_b, r2, y_pred_add, y_add = linear_regression_analysis(
