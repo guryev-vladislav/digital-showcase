@@ -1,57 +1,55 @@
-import numpy as np
 import matplotlib.pyplot as plt
+import random
+import math
+import numpy as np
 
 def manual_det_3x3(M):
-    """Вычисляет определитель матрицы 3x3 вручную."""
-    return (M[0, 0] * (M[1, 1] * M[2, 2] - M[1, 2] * M[2, 1]) -
-            M[0, 1] * (M[1, 0] * M[2, 2] - M[1, 2] * M[2, 0]) +
-            M[0, 2] * (M[1, 0] * M[2, 1] - M[1, 1] * M[2, 0]))
+    return (M[0][0] * (M[1][1] * M[2][2] - M[1][2] * M[2][1]) -
+            M[0][1] * (M[1][0] * M[2][2] - M[1][2] * M[2][0]) +
+            M[0][2] * (M[1][0] * M[2][1] - M[1][1] * M[2][0]))
 
-def solve_linear_system_cramer_manual(A, B):
-    """Решает систему линейных уравнений Ax = B методом Крамера (вычисление определителя вручную)."""
+def solve_linear_system_cramer_manual_no_numpy(A, B):
     det_A = manual_det_3x3(A)
-    if np.abs(det_A) < 1e-9:
+    if abs(det_A) < 1e-9:
         return None  # Матрица вырожденная
 
-    n = A.shape[0]
-    solutions = np.zeros(n)
+    n = len(A)
+    solutions = [0.0] * n
 
     for i in range(n):
-        Ai = np.copy(A)
-        Ai[:, i] = B
+        Ai = [row[:] for row in A]
+        for j in range(n):
+            Ai[j][i] = B[j]
         solutions[i] = manual_det_3x3(Ai) / det_A
 
     return solutions
 
-def multivariate_linear_regression_analysis_manual_equations_cramer_manual_det(a1_true, a2_true, b_true, sigma_sq, n, m, t1, t2, s1, s2):
-    """
-    Выполняет анализ многомерной линейной регрессии (вычисление вручную через систему уравнений методом Крамера с ручным определителем).
-    """
+def multivariate_linear_regression_analysis_manual_no_numpy(a1_true, a2_true, b_true, sigma_sq, n, m, t1, t2, s1, s2):
     # Шаг 1: Ввести коэффициенты и получить первую выборку
-    x1 = np.random.uniform(t1, t2, n)
-    x2 = np.random.uniform(s1, s2, n)
-    epsilon = np.random.normal(0, np.sqrt(sigma_sq), n)
-    y = a1_true * x1 + a2_true * x2 + b_true + epsilon
+    x1 = [random.uniform(t1, t2) for _ in range(n)]
+    x2 = [random.uniform(s1, s2) for _ in range(n)]
+    epsilon = [random.gauss(0, math.sqrt(sigma_sq)) for _ in range(n)]
+    y = [a1_true * x1[i] + a2_true * x2[i] + b_true + epsilon[i] for i in range(n)]
 
     # Шаг 2: Оценить коэффициенты линейной регрессии вручную через систему уравнений
-    sum_x1 = np.sum(x1)
-    sum_x2 = np.sum(x2)
-    sum_y = np.sum(y)
-    sum_x1_sq = np.sum(x1**2)
-    sum_x2_sq = np.sum(x2**2)
-    sum_x1_x2 = np.sum(x1 * x2)
-    sum_x1_y = np.sum(x1 * y)
-    sum_x2_y = np.sum(x2 * y)
+    sum_x1 = sum(x1)
+    sum_x2 = sum(x2)
+    sum_y = sum(y)
+    sum_x1_sq = sum(xi**2 for xi in x1)
+    sum_x2_sq = sum(xi**2 for xi in x2)
+    sum_x1_x2 = sum(x1[i] * x2[i] for i in range(n))
+    sum_x1_y = sum(x1[i] * y[i] for i in range(n))
+    sum_x2_y = sum(x2[i] * y[i] for i in range(n))
 
     # Матрица коэффициентов системы уравнений
-    A = np.array([[n, sum_x1, sum_x2],
-                  [sum_x1, sum_x1_sq, sum_x1_x2],
-                  [sum_x2, sum_x1_x2, sum_x2_sq]])
+    A = [[n, sum_x1, sum_x2],
+         [sum_x1, sum_x1_sq, sum_x1_x2],
+         [sum_x2, sum_x1_x2, sum_x2_sq]]
 
     # Вектор правых частей системы уравнений
-    B = np.array([sum_y, sum_x1_y, sum_x2_y])
+    B = [sum_y, sum_x1_y, sum_x2_y]
 
-    coefficients = solve_linear_system_cramer_manual(A, B)
+    coefficients = solve_linear_system_cramer_manual_no_numpy(A, B)
 
     if coefficients is None:
         print("Система линейных уравнений не имеет единственного решения (матрица вырожденная).")
@@ -62,10 +60,10 @@ def multivariate_linear_regression_analysis_manual_equations_cramer_manual_det(a
         a2_estimated = coefficients[2]
 
     # Шаг 3: Вычислить коэффициент детерминации R^2 вручную
-    y_predicted = a1_estimated * x1 + a2_estimated * x2 + b_estimated
-    y_mean = np.mean(y)
-    SSE = np.sum((y - y_predicted)**2)
-    SST = np.sum((y - y_mean)**2)
+    y_predicted = [a1_estimated * x1[i] + a2_estimated * x2[i] + b_estimated for i in range(n)]
+    y_mean = sum(y) / n
+    SSE = sum((y[i] - y_predicted[i])**2 for i in range(n))
+    SST = sum((y[i] - y_mean)**2 for i in range(n))
 
     if SST == 0:
         r_squared = 0
@@ -78,11 +76,11 @@ def multivariate_linear_regression_analysis_manual_equations_cramer_manual_det(a
     print(f"\nКоэффициент детерминации (R^2): {r_squared:.4f}")
 
     # Шаг 4: Получить дополнительную выборку и сравнить предсказанные значения
-    x1_additional = np.random.uniform(t1, t2, m)
-    x2_additional = np.random.uniform(s1, s2, m)
-    epsilon_additional = np.random.normal(0, np.sqrt(sigma_sq), m)
-    y_additional = a1_true * x1_additional + a2_true * x2_additional + b_true + epsilon_additional
-    y_predicted_additional = a1_estimated * x1_additional + a2_estimated * x2_additional + b_estimated
+    x1_additional = [random.uniform(t1, t2) for _ in range(m)]
+    x2_additional = [random.uniform(s1, s2) for _ in range(m)]
+    epsilon_additional = [random.gauss(0, math.sqrt(sigma_sq)) for _ in range(m)]
+    y_additional = [a1_true * x1_additional[i] + a2_true * x2_additional[i] + b_true + epsilon_additional[i] for i in range(m)]
+    y_predicted_additional = [a1_estimated * x1_additional[i] + a2_estimated * x2_additional[i] + b_estimated for i in range(m)]
 
     # Визуализация результатов (частично, так как 3D график)
     fig = plt.figure(figsize=(10, 8))
@@ -90,6 +88,7 @@ def multivariate_linear_regression_analysis_manual_equations_cramer_manual_det(a
     ax.scatter(x1, x2, y, c='blue', marker='o', label='Первая выборка (обучающая)')
 
     # Создание плоскости оцененной регрессии
+    from mpl_toolkits.mplot3d import Axes3D
     x1_surf = np.linspace(min(x1), max(x1), 100)
     x2_surf = np.linspace(min(x2), max(x2), 100)
     X1_surf, X2_surf = np.meshgrid(x1_surf, x2_surf)
@@ -102,7 +101,7 @@ def multivariate_linear_regression_analysis_manual_equations_cramer_manual_det(a
     ax.set_xlabel('x1')
     ax.set_ylabel('x2')
     ax.set_zlabel('y')
-    ax.set_title('Многомерная линейная регрессия (ручной расчет через уравнения - Крамер с ручным определителем)')
+    ax.set_title('Многомерная линейная регрессия (ручной расчет - без numpy)')
     ax.legend()
 
     # Добавление текстовой аннотации с начальными параметрами и R^2
@@ -122,7 +121,7 @@ def multivariate_linear_regression_analysis_manual_equations_cramer_manual_det(a
 
     plt.show()
 
-    return coefficients, y_predicted_additional, y_additional
+    return (a1_estimated, a2_estimated, b_estimated), y_predicted_additional, y_additional
 
 if __name__ == "__main__":
     # Запрашиваем параметры у пользователя
@@ -130,14 +129,14 @@ if __name__ == "__main__":
     a2_true = -1.0
     b_true = 5.0
     sigma_sq = 5
-    n = 10000
+    n = 100
     m = 50
     t1 = 0.0
     t2 = 10.0
     s1 = -5.0
     s2 = 5.0
 
-    # Запускаем анализ многомерной линейной регрессии (ручной расчет через уравнения методом Крамера с ручным определителем)
-    results, y_pred_add, y_add = multivariate_linear_regression_analysis_manual_equations_cramer_manual_det(
+    # Запускаем анализ многомерной линейной регрессии (ручной расчет - без numpy)
+    results, y_pred_add, y_add = multivariate_linear_regression_analysis_manual_no_numpy(
         a1_true, a2_true, b_true, sigma_sq, n, m, t1, t2, s1, s2
     )
