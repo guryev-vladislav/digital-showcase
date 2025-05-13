@@ -37,7 +37,7 @@ def visualize_linear_regression(x_train, y_train, y_predicted_train, x_test=None
     if x_test is not None and y_test is not None:
         plt.scatter(x_test, y_test, color='orange', marker='o', label='Тестовые данные')
         if y_predicted_test is not None:
-            plt.plot(x_test, y_predicted_test, 'm--', label='Предсказанные значения на тесте')
+            plt.scatter(x_test, y_predicted_test, color='black', marker='x', label='Предсказанные значения на тесте') # Отображаем точки 'x'
     plt.xlabel('x')
     plt.ylabel('y')
     plt.title('Линейная регрессия')
