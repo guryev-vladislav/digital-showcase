@@ -2,7 +2,7 @@ import tensorflow as tf
 import numpy as np
 import h5py
 import os
-from tqdm import tqdm # Добавляем tqdm для прогресс-баров
+from tqdm import tqdm
 
 # --- Конфигурация датасета ---
 OUTPUT_IMAGE_SIZE = (112, 112)  # Фиксированный размер выходного изображения
@@ -11,23 +11,24 @@ NUM_CLASSES = 10  # Цифры от 0 до 9
 # Множители масштаба для аугментации.
 AUGMENTATION_FACTORS = (0.5, 1.0, 2.0, 4.0, 8.0)
 
-# --- КОНСТАНТЫ ДЛЯ УПРАВЛЕНИЯ РАЗМЕРОМ ДАТАСЕТА ---
-# ОБЩЕЕ количество ИСХОДНЫХ ТРЕНИРОВОЧНЫХ изображений MNIST для использования.
-# Оригинальный MNIST имеет 60,000 тренировочных изображений.
-# Если вы хотите использовать меньшее подмножество, измените эту константу.
-ORIGINAL_MNIST_TRAIN_SAMPLES_TO_USE = 20000
+# --- КОНСТАНТЫ ДЛЯ УПРАВЛЕНИЯ РАЗМЕРОМ ДАТАСЕТА (УПРОЩЕННАЯ КОНФИГУРАЦИЯ) ---
+# ОБЩЕЕ количество ИСХОДНЫХ изображений MNIST для использования во ВСЕМ датасете
+# (тренировочном, валидационном и тестовом).
+# Если вы хотите использовать меньшее подмножество от 70,000 оригинальных изображений MNIST,
+# измените эту константу.
+# Примечание: Максимальное количество оригинальных изображений MNIST: 60,000 train + 10,000 test = 70,000.
+TOTAL_ORIGINAL_MNIST_SAMPLES_TO_USE = 1000  # Пример: используем 10,000 исходных изображений
 
-# Процент от ORIGINAL_MNIST_TRAIN_SAMPLES_TO_USE, который пойдет на валидацию.
-VALIDATION_SPLIT_RATIO = 0.1  # 10% для валидации, 90% для тренировки
+# Пропорции для распределения выбранных исходных изображений по наборам.
+# Сумма этих значений должна быть равна 1.0 (или близка к 1.0, учитывая округление).
+TRAIN_RATIO = 0.8  # 80% для тренировки
+VALIDATION_RATIO = 0.1  # 10% для валидации
+TEST_RATIO = 0.1  # 10% для теста
 
-# ОБЩЕЕ количество ИСХОДНЫХ ТЕСТОВЫХ изображений MNIST для использования.
-# Оригинальный MNIST имеет 10,000 тестовых изображений.
-ORIGINAL_MNIST_TEST_SAMPLES_TO_USE = 10000
-
-# --- Конфигурация папок и имен файлов ---
-DATASET_FOLDER = 'datasets' # Новая константа для папки датасета
-OUTPUT_H5_FILENAME_ONLY = 'synthetic_mnist_large_scale_flexible_sizes.h5' # Только имя файла
-OUTPUT_H5_FULL_PATH = os.path.join(DATASET_FOLDER, OUTPUT_H5_FILENAME_ONLY) # Полный путь
+# Имена файлов и папок
+DATASET_FOLDER = 'datasets'
+OUTPUT_H5_FILENAME_ONLY = 'synthetic_mnist_large_scale_flexible_sizes_v1000.h5'
+OUTPUT_H5_FULL_PATH = os.path.join(DATASET_FOLDER, OUTPUT_H5_FILENAME_ONLY)
 
 
 def _augment_image_and_create_mask(image, label, scale_factor):
@@ -88,28 +89,50 @@ def generate_and_save_augmented_mnist(output_full_path=OUTPUT_H5_FULL_PATH):
         (x_test_original, y_test_original) = tf.keras.datasets.mnist.load_data()
     print("Оригинальный MNIST загружен.")
 
-    x_train_original = np.expand_dims(x_train_original, axis=-1)
-    x_test_original = np.expand_dims(x_test_original, axis=-1)
+    # Объединяем тренировочные и тестовые данные для общего пула, из которого будем выбирать.
+    # Это позволяет нам гибко распределять данные, не ограничиваясь исходным делением.
+    x_combined_original = np.concatenate((x_train_original, x_test_original), axis=0)
+    y_combined_original = np.concatenate((y_train_original, y_test_original), axis=0)
 
-    x_train_original = x_train_original.astype('float32') / 255.0
-    x_test_original = x_test_original.astype('float32') / 255.0
+    # Добавляем измерение канала (для оттенков серого, 1 канал)
+    x_combined_original = np.expand_dims(x_combined_original, axis=-1)
 
-    actual_train_samples = min(ORIGINAL_MNIST_TRAIN_SAMPLES_TO_USE, len(x_train_original))
-    actual_test_samples = min(ORIGINAL_MNIST_TEST_SAMPLES_TO_USE, len(x_test_original))
+    # Нормализация изображений к диапазону [0, 1]
+    x_combined_original = x_combined_original.astype('float32') / 255.0
 
-    num_train_for_split = int(actual_train_samples * (1 - VALIDATION_SPLIT_RATIO))
-    num_val_for_split = actual_train_samples - num_train_for_split
+    # --- Определение фактических размеров наборов данных на основе ОДНОЙ константы ---
+    # Убедимся, что не превышаем доступные данные
+    actual_total_samples = min(TOTAL_ORIGINAL_MNIST_SAMPLES_TO_USE, len(x_combined_original))
 
-    x_train_split = x_train_original[:num_train_for_split]
-    y_train_split = y_train_original[:num_train_for_split]
+    # Перемешиваем объединенные данные, чтобы обеспечить случайное распределение по train/val/test
+    # Это важно, так как оригинальный MNIST уже разделен, и мы хотим нового случайного разделения.
+    np.random.seed(42)  # Для воспроизводимости, можно убрать для полной случайности
+    indices = np.arange(len(x_combined_original))
+    np.random.shuffle(indices)
 
-    x_val_split = x_train_original[num_train_for_split:num_train_for_split + num_val_for_split]
-    y_val_split = y_train_original[num_train_for_split:num_train_for_split + num_val_for_split]
+    x_shuffled = x_combined_original[indices]
+    y_shuffled = y_combined_original[indices]
 
-    x_test_split = x_test_original[:actual_test_samples]
-    y_test_split = y_test_original[:actual_test_samples]
+    # Берем только то количество сэмплов, которое указано
+    x_selected = x_shuffled[:actual_total_samples]
+    y_selected = y_shuffled[:actual_total_samples]
 
-    print(f"\nБудет сгенерировано аугментированных данных:")
+    # Вычисляем количество сэмплов для каждого набора
+    num_train_samples = int(actual_total_samples * TRAIN_RATIO)
+    num_val_samples = int(actual_total_samples * VALIDATION_RATIO)
+    num_test_samples = actual_total_samples - num_train_samples - num_val_samples  # Оставшиеся идут в тест
+
+    # Разделяем данные
+    x_train_split = x_selected[:num_train_samples]
+    y_train_split = y_selected[:num_train_samples]
+
+    x_val_split = x_selected[num_train_samples: num_train_samples + num_val_samples]
+    y_val_split = y_selected[num_train_samples: num_train_samples + num_val_samples]
+
+    x_test_split = x_selected[num_train_samples + num_val_samples:]
+    y_test_split = y_selected[num_train_samples + num_val_samples:]
+
+    print(f"\nБудет сгенерировано аугментированных данных из {actual_total_samples} исходных изображений:")
     print(
         f"Тренировочный набор: {len(x_train_split)} исходных изображений * {len(AUGMENTATION_FACTORS)} масштабов = {len(x_train_split) * len(AUGMENTATION_FACTORS)} аугментированных изображений.")
     print(
@@ -119,6 +142,7 @@ def generate_and_save_augmented_mnist(output_full_path=OUTPUT_H5_FULL_PATH):
 
     print("\nПрименение аугментации для всех масштабов к каждому изображению (это может занять значительное время)...")
 
+    # Списки для сбора аугментированных данных
     all_x_train, all_mask_train, all_y_train = [], [], []
     all_x_val, all_mask_val, all_y_val = [], [], []
     all_x_test, all_mask_test, all_y_test = [], [], []
@@ -168,12 +192,13 @@ def generate_and_save_augmented_mnist(output_full_path=OUTPUT_H5_FULL_PATH):
             all_mask_test.append(mask.numpy())
             all_y_test.append(one_hot_lbl.numpy())
 
+    # Преобразуем списки в numpy массивы
     x_train_final = np.array(all_x_train, dtype=np.float32)
     mask_train_final = np.array(all_mask_train, dtype=np.float32)
     y_train_final = np.array(all_y_train, dtype=np.float32)
 
     x_val_final = np.array(all_x_val, dtype=np.float32)
-    mask_val_final = np.array(all_mask_val, dtype=np.float32)
+    mask_val_final = np.array(all_mask_val, dtype=np.float32)  # ИСПРАВЛЕНО ЗДЕСЬ!
     y_val_final = np.array(all_y_val, dtype=np.float32)
 
     x_test_final = np.array(all_x_test, dtype=np.float32)
@@ -212,7 +237,7 @@ if __name__ == '__main__':
     print(f"\nПроверка загрузки сгенерированного файла '{OUTPUT_H5_FULL_PATH}'...")
     import matplotlib.pyplot as plt
 
-    with h5py.File(OUTPUT_H5_FULL_PATH, 'r') as f: # Изменено на OUTPUT_H5_FULL_PATH
+    with h5py.File(OUTPUT_H5_FULL_PATH, 'r') as f:
         x_train_loaded = np.array(f['x_train'])
         y_train_loaded = np.array(f['y_train'])
         mask_train_loaded = np.array(f['mask_train'])
