@@ -2,6 +2,7 @@ import tensorflow as tf
 import numpy as np
 import h5py
 import os
+from tqdm import tqdm # Добавляем tqdm для прогресс-баров
 
 # --- Конфигурация датасета ---
 OUTPUT_IMAGE_SIZE = (112, 112)  # Фиксированный размер выходного изображения
@@ -23,8 +24,10 @@ VALIDATION_SPLIT_RATIO = 0.1  # 10% для валидации, 90% для тре
 # Оригинальный MNIST имеет 10,000 тестовых изображений.
 ORIGINAL_MNIST_TEST_SAMPLES_TO_USE = 10000
 
-# Имя выходного файла HDF5
-OUTPUT_H5_FILENAME = 'synthetic_mnist_large_scale_flexible_sizes.h5'
+# --- Конфигурация папок и имен файлов ---
+DATASET_FOLDER = 'datasets' # Новая константа для папки датасета
+OUTPUT_H5_FILENAME_ONLY = 'synthetic_mnist_large_scale_flexible_sizes.h5' # Только имя файла
+OUTPUT_H5_FULL_PATH = os.path.join(DATASET_FOLDER, OUTPUT_H5_FILENAME_ONLY) # Полный путь
 
 
 def _augment_image_and_create_mask(image, label, scale_factor):
@@ -40,31 +43,22 @@ def _augment_image_and_create_mask(image, label, scale_factor):
     Returns:
         tuple: (финальное_изображение, маска, one_hot_метка)
     """
-    # Определяем новый размер изображения на основе масштабного коэффициента
     original_h, original_w = tf.shape(image)[0], tf.shape(image)[1]
     new_h = tf.cast(tf.cast(original_h, tf.float32) * scale_factor, tf.int32)
     new_w = tf.cast(tf.cast(original_w, tf.float32) * scale_factor, tf.int32)
 
-    # Изменяем размер изображения
     scaled_image = tf.image.resize(image, (new_h, new_w), method=tf.image.ResizeMethod.BILINEAR)
 
-    # Вычисляем позиции для вставки масштабированного изображения в центр холста.
     start_h = tf.cast((OUTPUT_IMAGE_SIZE[0] - new_h) / 2, tf.int32)
     start_w = tf.cast((OUTPUT_IMAGE_SIZE[1] - new_w) / 2, tf.int32)
 
-    # Используем tf.pad для создания тензора, который будет достаточного размера
-    # для вставки scaled_image, а затем обрезаем его до OUTPUT_IMAGE_SIZE.
-
-    # Рассчитываем необходимый паддинг для scaled_image, чтобы он в итоге был 112x112
     pad_top = tf.maximum(0, start_h)
     pad_bottom = tf.maximum(0, OUTPUT_IMAGE_SIZE[0] - (start_h + new_h))
     pad_left = tf.maximum(0, start_w)
     pad_right = tf.maximum(0, OUTPUT_IMAGE_SIZE[1] - (start_w + new_w))
 
-    # Добавляем паддинг к scaled_image
     padded_scaled_image = tf.pad(scaled_image, [[pad_top, pad_bottom], [pad_left, pad_right], [0, 0]])
 
-    # Обрезаем результат до OUTPUT_IMAGE_SIZE
     crop_start_h = tf.maximum(0, -start_h)
     crop_start_w = tf.maximum(0, -start_w)
 
@@ -76,16 +70,14 @@ def _augment_image_and_create_mask(image, label, scale_factor):
         target_width=OUTPUT_IMAGE_SIZE[1]
     )
 
-    # Создание бинарной маски (порог 0.1, как для MNIST Large Scale)
     mask = tf.where(final_image > 0.1, 1.0, 0.0)
 
-    # Преобразование метки класса в One-Hot Encoding
     one_hot_label = tf.one_hot(label, depth=NUM_CLASSES)
 
     return final_image, mask, one_hot_label
 
 
-def generate_and_save_augmented_mnist(output_filename=OUTPUT_H5_FILENAME):
+def generate_and_save_augmented_mnist(output_full_path=OUTPUT_H5_FULL_PATH):
     """
     Генерирует аугментированный датасет MNIST, где каждое исходное изображение
     аугментируется со всеми заданными масштабами, и сохраняет его в HDF5 файл.
@@ -96,16 +88,12 @@ def generate_and_save_augmented_mnist(output_filename=OUTPUT_H5_FILENAME):
         (x_test_original, y_test_original) = tf.keras.datasets.mnist.load_data()
     print("Оригинальный MNIST загружен.")
 
-    # Добавляем измерение канала (для оттенков серого, 1 канал)
     x_train_original = np.expand_dims(x_train_original, axis=-1)
     x_test_original = np.expand_dims(x_test_original, axis=-1)
 
-    # Нормализация изображений к диапазону [0, 1]
     x_train_original = x_train_original.astype('float32') / 255.0
     x_test_original = x_test_original.astype('float32') / 255.0
 
-    # --- Определение фактических размеров наборов данных на основе констант ---
-    # Убедимся, что не превышаем доступные данные
     actual_train_samples = min(ORIGINAL_MNIST_TRAIN_SAMPLES_TO_USE, len(x_train_original))
     actual_test_samples = min(ORIGINAL_MNIST_TEST_SAMPLES_TO_USE, len(x_test_original))
 
@@ -131,14 +119,13 @@ def generate_and_save_augmented_mnist(output_filename=OUTPUT_H5_FILENAME):
 
     print("\nПрименение аугментации для всех масштабов к каждому изображению (это может занять значительное время)...")
 
-    # Списки для сбора аугментированных данных
     all_x_train, all_mask_train, all_y_train = [], [], []
     all_x_val, all_mask_val, all_y_val = [], [], []
     all_x_test, all_mask_test, all_y_test = [], [], []
 
-    # Обработка тренировочного набора
-    print(f"Обработка тренировочного набора ({len(x_train_split)} исходных изображений)...")
-    for i in range(len(x_train_split)):
+    # Обработка тренировочного набора с прогресс-баром
+    print(f"Обработка тренировочного набора ({len(x_train_split)} исходных изображений):")
+    for i in tqdm(range(len(x_train_split)), desc="Генерация train data"):
         original_img = x_train_split[i]
         original_lbl = y_train_split[i]
         for scale_factor in AUGMENTATION_FACTORS:
@@ -151,9 +138,9 @@ def generate_and_save_augmented_mnist(output_filename=OUTPUT_H5_FILENAME):
             all_mask_train.append(mask.numpy())
             all_y_train.append(one_hot_lbl.numpy())
 
-    # Обработка валидационного набора
-    print(f"Обработка валидационного набора ({len(x_val_split)} исходных изображений)...")
-    for i in range(len(x_val_split)):
+    # Обработка валидационного набора с прогресс-баром
+    print(f"Обработка валидационного набора ({len(x_val_split)} исходных изображений):")
+    for i in tqdm(range(len(x_val_split)), desc="Генерация val data"):
         original_img = x_val_split[i]
         original_lbl = y_val_split[i]
         for scale_factor in AUGMENTATION_FACTORS:
@@ -166,9 +153,9 @@ def generate_and_save_augmented_mnist(output_filename=OUTPUT_H5_FILENAME):
             all_mask_val.append(mask.numpy())
             all_y_val.append(one_hot_lbl.numpy())
 
-    # Обработка тестового набора
-    print(f"Обработка тестового набора ({len(x_test_split)} исходных изображений)...")
-    for i in range(len(x_test_split)):
+    # Обработка тестового набора с прогресс-баром
+    print(f"Обработка тестового набора ({len(x_test_split)} исходных изображений):")
+    for i in tqdm(range(len(x_test_split)), desc="Генерация test data"):
         original_img = x_test_split[i]
         original_lbl = y_test_split[i]
         for scale_factor in AUGMENTATION_FACTORS:
@@ -181,7 +168,6 @@ def generate_and_save_augmented_mnist(output_filename=OUTPUT_H5_FILENAME):
             all_mask_test.append(mask.numpy())
             all_y_test.append(one_hot_lbl.numpy())
 
-    # Преобразуем списки в numpy массивы
     x_train_final = np.array(all_x_train, dtype=np.float32)
     mask_train_final = np.array(all_mask_train, dtype=np.float32)
     y_train_final = np.array(all_y_train, dtype=np.float32)
@@ -194,8 +180,12 @@ def generate_and_save_augmented_mnist(output_filename=OUTPUT_H5_FILENAME):
     mask_test_final = np.array(all_mask_test, dtype=np.float32)
     y_test_final = np.array(all_y_test, dtype=np.float32)
 
-    print("Сохранение аугментированного датасета в HDF5 файл...")
-    with h5py.File(output_filename, 'w') as f:
+    # --- Создание папки, если её нет ---
+    os.makedirs(DATASET_FOLDER, exist_ok=True)
+    print(f"Папка для датасета '{DATASET_FOLDER}' проверена/создана.")
+
+    print(f"Сохранение аугментированного датасета в HDF5 файл: {output_full_path}...")
+    with h5py.File(output_full_path, 'w') as f:
         f.create_dataset('x_train', data=x_train_final, compression="gzip", compression_opts=9)
         f.create_dataset('y_train', data=y_train_final, compression="gzip", compression_opts=9)
         f.create_dataset('mask_train', data=mask_train_final, compression="gzip", compression_opts=9)
@@ -208,7 +198,7 @@ def generate_and_save_augmented_mnist(output_filename=OUTPUT_H5_FILENAME):
         f.create_dataset('y_test', data=y_test_final, compression="gzip", compression_opts=9)
         f.create_dataset('mask_test', data=mask_test_final, compression="gzip", compression_opts=9)
 
-    print(f"Датасет успешно сгенерирован и сохранен в '{output_filename}'")
+    print(f"Датасет успешно сгенерирован и сохранен в '{output_full_path}'")
     print(f"Размеры сохраненных данных:")
     print(f"x_train: {x_train_final.shape}, y_train: {y_train_final.shape}, mask_train: {mask_train_final.shape}")
     print(f"x_val:   {x_val_final.shape}, y_val:   {y_val_final.shape}, mask_val:   {mask_val_final.shape}")
@@ -219,10 +209,10 @@ if __name__ == '__main__':
     generate_and_save_augmented_mnist()
 
     # --- Проверка сгенерированного файла ---
-    print(f"\nПроверка загрузки сгенерированного файла '{OUTPUT_H5_FILENAME}'...")
+    print(f"\nПроверка загрузки сгенерированного файла '{OUTPUT_H5_FULL_PATH}'...")
     import matplotlib.pyplot as plt
 
-    with h5py.File(OUTPUT_H5_FILENAME, 'r') as f:
+    with h5py.File(OUTPUT_H5_FULL_PATH, 'r') as f: # Изменено на OUTPUT_H5_FULL_PATH
         x_train_loaded = np.array(f['x_train'])
         y_train_loaded = np.array(f['y_train'])
         mask_train_loaded = np.array(f['mask_train'])
@@ -231,7 +221,6 @@ if __name__ == '__main__':
         print(f"y_train загружено: {y_train_loaded.shape}")
         print(f"mask_train загружено: {mask_train_loaded.shape}")
 
-        # Визуализация нескольких примеров из сгенерированного датасета
         num_samples_to_plot = 5
         plt.figure(figsize=(15, 6))
         for i in range(num_samples_to_plot):
