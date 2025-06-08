@@ -1,0 +1,43 @@
+--- Run Parameters ---
+Run Timestamp: 20250607-195310
+
+--- Dataset Information ---
+Dataset Source: Generated HDF5
+Dataset Filename: synthetic_mnist_large_scale_flexible_sizes_v5000.h5
+H5 File Path: datasets\synthetic_mnist_large_scale_flexible_sizes_v5000.h5
+Train Samples: 20000
+Validation Samples: 2500
+Test Samples: 2500
+
+--- Model Architecture and Parameters ---
+Model Type: Simple Dense Network for MNIST
+Input Shape: (112, 112)
+Number of Classes: 10
+Total Model Parameters: 1614666
+Optimizer: Adam
+Loss Function: Categorical Crossentropy
+Metrics: Accuracy
+L1 Regularization: 0.0001
+L2 Regularization: 0.0001
+Use Regularization: True
+Dropout Rate: 0.2
+
+--- Training Parameters ---
+Max Epochs: 150
+Batch Size: 32
+Early Stopping Monitor: val_loss
+Early Stopping Patience: 5
+Early Stopping Restore Best Weights: True
+
+--- Final Metrics (Training History) ---
+Final Training Loss: 1.1921
+Final Validation Loss: 1.1467
+Final Training Accuracy: 0.8449
+Final Validation Accuracy: 0.8692
+
+--- Test Metrics ---
+Test Loss: 1.0637
+Test Accuracy: 0.8868
+
+Model Save Path: models\cnn_mnist_model_20250607-195310.keras
+Results Directory: results\cnn_20250607-195310
