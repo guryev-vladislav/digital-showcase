@@ -11,11 +11,6 @@ NUM_CLASSES = 10  # Цифры от 0 до 9
 # Множители масштаба для аугментации.
 AUGMENTATION_FACTORS = (0.5, 1.0, 2.0, 4.0, 8.0)
 
-# --- КОНСТАНТЫ ДЛЯ УПРАВЛЕНИЯ РАЗМЕРОМ ДАТАСЕТА (УПРОЩЕННАЯ КОНФИГУРАЦИЯ) ---
-# ОБЩЕЕ количество ИСХОДНЫХ изображений MNIST для использования во ВСЕМ датасете
-# (тренировочном, валидационном и тестовом).
-# Если вы хотите использовать меньшее подмножество от 70,000 оригинальных изображений MNIST,
-# измените эту константу.
 # Примечание: Максимальное количество оригинальных изображений MNIST: 60,000 train + 10,000 test = 70,000.
 TOTAL_ORIGINAL_MNIST_SAMPLES_TO_USE = 1000  # Пример: используем 10,000 исходных изображений
 
@@ -32,18 +27,7 @@ OUTPUT_H5_FULL_PATH = os.path.join(DATASET_FOLDER, OUTPUT_H5_FILENAME_ONLY)
 
 
 def _augment_image_and_create_mask(image, label, scale_factor):
-    """
-    Применяет заданный масштаб к изображению, затем "встраивает" его в центр
-    холста OUTPUT_IMAGE_SIZE. Создает бинарную маску и one-hot метку.
 
-    Args:
-        image (tf.Tensor): Исходное изображение.
-        label (tf.Tensor): Исходная метка.
-        scale_factor (float): Множитель масштаба для применения.
-
-    Returns:
-        tuple: (финальное_изображение, маска, one_hot_метка)
-    """
     original_h, original_w = tf.shape(image)[0], tf.shape(image)[1]
     new_h = tf.cast(tf.cast(original_h, tf.float32) * scale_factor, tf.int32)
     new_w = tf.cast(tf.cast(original_w, tf.float32) * scale_factor, tf.int32)
@@ -79,11 +63,7 @@ def _augment_image_and_create_mask(image, label, scale_factor):
 
 
 def generate_and_save_augmented_mnist(output_full_path=OUTPUT_H5_FULL_PATH):
-    """
-    Генерирует аугментированный датасет MNIST, где каждое исходное изображение
-    аугментируется со всеми заданными масштабами, и сохраняет его в HDF5 файл.
-    Размеры наборов данных зависят от констант в начале файла.
-    """
+
     print("Загрузка оригинального датасета MNIST...")
     (x_train_original, y_train_original), \
         (x_test_original, y_test_original) = tf.keras.datasets.mnist.load_data()
@@ -120,7 +100,6 @@ def generate_and_save_augmented_mnist(output_full_path=OUTPUT_H5_FULL_PATH):
     # Вычисляем количество сэмплов для каждого набора
     num_train_samples = int(actual_total_samples * TRAIN_RATIO)
     num_val_samples = int(actual_total_samples * VALIDATION_RATIO)
-    num_test_samples = actual_total_samples - num_train_samples - num_val_samples  # Оставшиеся идут в тест
 
     # Разделяем данные
     x_train_split = x_selected[:num_train_samples]

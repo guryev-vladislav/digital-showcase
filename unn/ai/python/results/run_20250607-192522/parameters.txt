@@ -1,0 +1,49 @@
+--- Run Parameters ---
+Run Timestamp: 20250607-192522
+
+--- Dataset Information ---
+Dataset Filename: synthetic_mnist_large_scale_flexible_sizes_v5000.h5
+H5 File Path: datasets\synthetic_mnist_large_scale_flexible_sizes_v5000.h5
+Train Samples: 20000
+Validation Samples: 2500
+Test Samples: 2500
+
+--- Model Architecture and Parameters ---
+Model Type: U-Net with Classification Head
+Input Shape: (112, 112, 1)
+Number of Classes (Classification): 10
+Total Model Parameters: 1927595
+Optimizer: Adam
+Initial Learning Rate: 0.001
+Segmentation Loss Function: Binary Crossentropy
+Classification Loss Function: Categorical Crossentropy
+Metrics: Segmentation Accuracy, Classification Accuracy
+
+--- Training Parameters ---
+Epochs: 10
+Batch Size: 32
+Early Stopping Monitor: val_loss
+Early Stopping Patience: 5
+Early Stopping Restore Best Weights: True
+ReduceLROnPlateau Monitor: val_loss
+ReduceLROnPlateau Factor: 0.5
+ReduceLROnPlateau Patience: 3
+ReduceLROnPlateau Min LR: 1e-06
+
+--- Final Metrics (Training History) ---
+Final Total Training Loss: 0.0452
+Final Total Validation Loss: 0.1010
+Final Segmentation Training Accuracy: 0.9992
+Final Segmentation Validation Accuracy: 0.9991
+Final Classification Training Accuracy: 0.9860
+Final Classification Validation Accuracy: 0.9716
+
+--- Test Metrics (Clean Data) ---
+Test Total Loss: 0.1123
+Test Segmentation Loss: 0.0020
+Test Classification Loss: 0.1219
+Test Segmentation Accuracy: 0.9652
+Test Classification Accuracy: 0.9992
+
+Model Save Path: models\unet_mnist_segmentation_classification_model_v11.keras
+Results Directory: results\run_20250607-192522
