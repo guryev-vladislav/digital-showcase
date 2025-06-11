@@ -12,18 +12,15 @@ import json
 
 # --- КОНФИГУРАЦИЯ ФАЙЛОВ И ДАТАСЕТА ---
 DATASET_FOLDER = 'datasets'
-# Убедитесь, что это имя файла соответствует тому, что генерирует generate_augmented_mnist_dataset.py
 DATASET_FILENAME = 'synthetic_mnist_large_scale_flexible_sizes_v5000.h5'
 H5_FILE_PATH = os.path.join(DATASET_FOLDER, DATASET_FILENAME)
 
-# Общая папка для сохранения всех моделей (как U-Net, так и CNN/Dense Net)
 MODELS_FOLDER = 'models'
-# Общая папка для всех результатов
 RESULTS_FOLDER = 'results'
 
 # --- ПАРАМЕТРЫ МОДЕЛИ И ОБУЧЕНИЯ ---
 INPUT_SHAPE = (112, 112, 1)  # Размер входного изображения (высота, ширина, каналы)
-NUM_CLASSES = 10  # Количество классов для классификации MNIST (0-9)
+NUM_CLASSES = 10
 BATCH_SIZE = 32
 EPOCHS = 10
 LEARNING_RATE = 0.001
