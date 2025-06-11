@@ -2,8 +2,6 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 
-# --- ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ ---
-
 def stretched_linspace(n, alpha, bias_toward_zero=True):
     """
     Создает геометрически сгущённую линейную последовательность от 0 до 1.
