@@ -44,7 +44,6 @@
             this.pictureBoxGraph.Size = new System.Drawing.Size(804, 374);
             this.pictureBoxGraph.TabIndex = 0;
             this.pictureBoxGraph.TabStop = false;
-            this.pictureBoxGraph.Click += new System.EventHandler(this.pictureBoxGraph_Click);
             // 
             // label1
             // 
@@ -54,7 +53,6 @@
             this.label1.Size = new System.Drawing.Size(70, 13);
             this.label1.TabIndex = 1;
             this.label1.Text = "Параметр a:";
-            this.label1.Click += new System.EventHandler(this.label1_Click);
             // 
             // textBoxA
             // 
