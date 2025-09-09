@@ -21,7 +21,7 @@ namespace lab2_projection
 
 
         List<Pen> pens;
-        matrix Rx_plus, Ry_plus, Rz_plus, Rx_minus, Ry_minus, Rz_minus, Ax, Az, A_iso;
+        matrix Rx_plus, Ry_plus, Rz_plus, Rx_minus, Ry_minus, Rz_minus, Ax, Az,Ay, A_iso;
         mesh axe_x, axe_y, axe_z, floor1, floor2, floor2_1, floor3, col1, col2, roof, wall1, wall2;
         List<mesh> my_object0, my_object;
 
@@ -109,6 +109,15 @@ namespace lab2_projection
             Ax.Add(1, 0, 0, 0);
             Ax.Add(0, 0, 1, 0);
             Ax.Add(0, 0, 0, 1);
+
+            Ay = new matrix();
+            // cos(-135°) = -√2/2 ≈ -0.7071, sin(-135°) = -√2/2 ≈ -0.7071
+            // cos(-45°) = √2/2 ≈ 0.7071, sin(-45°) = -√2/2 ≈ -0.7071
+
+            Ay.Add((float)-0.7071, (float)0.5000, (float)-0.5000, 0);        // X компонента
+            Ay.Add((float)-0.7071, (float)-0.5000, (float)0.5000, 0);        // Y компонента  
+            Ay.Add((float)0.0000, (float)0.7071, (float)0.7071, 0);          // Z компонента
+            Ay.Add(0, 0, 0, 1);                 // W компонента
 
             Az = new matrix();
             Az.Add(1, 0, 0, 0);
@@ -472,6 +481,7 @@ namespace lab2_projection
         private void button1_Click(object sender, EventArgs e)
         {
             default_object();
+            mult_all(Ay, ref my_object);
             draw_pic();
         }
         private void button2_Click(object sender, EventArgs e)
