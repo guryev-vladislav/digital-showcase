@@ -1,0 +1,7 @@
+# Скрыть служебные файлы Visual Studio
+.vs/
+bin/
+obj/
+*.user
+*.suo
+*.sln.docstates
