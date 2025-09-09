@@ -3,10 +3,6 @@ import matplotlib.pyplot as plt
 
 
 def stretched_linspace(n, alpha, bias_toward_zero=True):
-    """
-    Создает геометрически сгущённую линейную последовательность от 0 до 1.
-    Если bias_toward_zero=True, сгущение к 0; иначе - к 1.
-    """
     if bias_toward_zero:
         return np.linspace(0, 1, n) ** alpha
     else:
@@ -14,10 +10,6 @@ def stretched_linspace(n, alpha, bias_toward_zero=True):
 
 
 def bilinear_interpolation(xi_coords, eta_coords, P1, P2, P3, P4):
-    """
-    Выполняет билинейную интерполяцию для произвольного четырехугольника.
-    P1 (левый нижний), P2 (правый нижний), P3 (правый верхний), P4 (левый верхний).
-    """
     return (
             np.outer(1 - xi_coords, 1 - eta_coords)[:, :, None] * P1 +
             np.outer(xi_coords, 1 - eta_coords)[:, :, None] * P2 +
@@ -83,9 +75,9 @@ def run_processor(initial_grid, x_coords_initial, y_coords_initial,
     u_x_step[fixed_indices] = 0.0
     u_y_step[fixed_indices] = 0.0
 
-    print(f"Заданные параметры деформации:") # Отладочный вывод
-    print(f"  Конечные вершины: {P_corners_final}") # Отладочный вывод
-    print(f"  Закрепленная граница: {FIXED_BOUNDARY}") # Отладочный вывод
+    print(f"Заданные параметры деформации:")
+    print(f"  Конечные вершины: {P_corners_final}")
+    print(f"  Закрепленная граница: {FIXED_BOUNDARY}")
     print(f"  Количество закрепленных узлов: {len(fixed_indices)}\n")
 
     return u_x_step, u_y_step
