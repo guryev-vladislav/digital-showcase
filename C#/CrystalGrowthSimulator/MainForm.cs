@@ -179,7 +179,7 @@ namespace CrystalGrowthSimulator
 
             Matrix4 lookAt = Matrix4.LookAt(
                 cameraPosition,
-                Vector3.Zero, // Смотрим в центр
+                new Vector3(0, 1.5f, 0), // Смотрим на центр кристаллов
                 Vector3.UnitY
             );
             GL.LoadMatrix(ref lookAt);
