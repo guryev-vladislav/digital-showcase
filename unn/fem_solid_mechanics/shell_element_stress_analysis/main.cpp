@@ -25,21 +25,29 @@ int main()
     double a = -1.;
     double b = 1.;
     
-    int n = 3;
+    int n = 7;
     
+    // Метод трапеций
     std::cout << "Формула Трапеции" << std::endl;
-    std::cout << "Усилие N: " << integral_trapezoid(n, a, b, constant) << std::endl;
-    std::cout << "Момент M: " << integral_trapezoid(n, a, b, ksi) << std::endl ;
-    
-    std::cout << std::endl << "Формула Симпсона" << std::endl;
-    std::cout << "Усилие N: " << integral_simpson(n, a, b, constant) << std::endl;
-    std::cout << "Момент M: " << integral_simpson(n, a, b, ksi) << std::endl ;
+    double trapezoid_N = integral_trapezoid(n, a, b, constant);
+    double trapezoid_M = integral_trapezoid(n, a, b, ksi);
+    std::cout << "Усилие N: " << trapezoid_N << std::endl;
+    std::cout << "Момент M: " << trapezoid_M << std::endl;
 
-    for (int i = 2; i <= 5; i++)
-    {
+    // Метод Симпсона
+    std::cout << std::endl << "Формула Симпсона" << std::endl;
+    double simpson_N = integral_simpson(n, a, b, constant);
+    double simpson_M = integral_simpson(n, a, b, ksi);
+    std::cout << "Усилие N: " << simpson_N << std::endl;
+    std::cout << "Момент M: " << simpson_M << std::endl;
+
+    // Метод Гаусса
+    for (int i = 2; i <= 5; i++) {
         std::cout << std::endl << "Формула Гаусса n = " << i << std::endl;
-        std::cout << "Усилие N: " << integral_Gauss(i, a, b, constant) << std::endl;
-        std::cout << "Момент M: " << integral_Gauss(i, a, b, ksi) << std::endl ;
+        double gauss_N = integral_Gauss(i, a, b, constant);
+        double gauss_M = integral_Gauss(i, a, b, ksi);
+        std::cout << "Усилие N: " << gauss_N << std::endl;
+        std::cout << "Момент M: " << gauss_M << std::endl;
     }
     
     return 0;
@@ -47,23 +55,24 @@ int main()
 
 double constant(double x)
 {
-    return pow(x, 6.) + 1;
+    return 3*x*x*x;
 }
 
 double ksi(double x)
 {
-    return x * x;
+    return 5*x*x;
 }
 
 double integral_trapezoid(int n, double a, double b, double(*f)(double))
 {
     int intervals = n - 1;
     double h = (b - a) / intervals;
+    std::cout << "Метод трапеций (h):" << h<<std::endl;
     double result = f(a) / 2. + f(b) / 2.;
     
-    for (int i = 1; i < intervals - 1; i++)
+    for (int i = 1; i < intervals; i++)
     {
-        result += f(a + static_cast<double>(i) * h);
+        result = result + f(a + static_cast<double>(i) * h);
     }
     
     return h * result;
@@ -74,12 +83,12 @@ double integral_simpson(int n, double a, double b, double(*f)(double))
     int intervals = n - 1;
     
     if (intervals % 2) throw "Для формулы Cимпсона нужно четное количество интервалов";
-    
+
     double h = (b - a) / static_cast<double>(intervals);
     
     double result = f(a) + f(b);
     
-    for (int i = 1; i < intervals - 1; i++)
+    for (int i = 1; i < intervals; i++)
     {
         if (i % 2)
         {
