@@ -48,6 +48,7 @@ namespace CrystalGrowthSimulator.Models
         public float TargetHeight { get; private set; }
         public float GrowthSpeed { get; private set; }
         public float BaseRadius { get; private set; }
+        public Vector3 GrowthDirection { get; private set; }
 
         private float dissolveProgress = 0f;
         private Random random;
@@ -58,19 +59,36 @@ namespace CrystalGrowthSimulator.Models
             this.random = random;
             Faces = new List<CrystalFace>();
 
-            // Параметры для прямых колонн
-            TargetHeight = 1.5f + (float)random.NextDouble() * 1.0f; // 1.5 - 2.5
+            TargetHeight = 1.2f + (float)random.NextDouble() * 0.8f;
             GrowthSpeed = 0.01f + (float)random.NextDouble() * 0.02f;
             CurrentHeight = 0.1f;
-            BaseRadius = 0.08f + (float)random.NextDouble() * 0.04f; // 0.08 - 0.12
+            BaseRadius = 0.06f + (float)random.NextDouble() * 0.04f;
+
+            GrowthDirection = GetRandomGrowthDirection();
 
             CreateBaseGeometry();
             UpdateTipPosition();
         }
 
+        private Vector3 GetRandomGrowthDirection()
+        {
+            if (random.NextDouble() < 0.4f)
+            {
+                return new Vector3(0, 1, 0);
+            }
+            else
+            {
+                return new Vector3(
+                    (float)(random.NextDouble() - 0.5f) * 1.5f,
+                    (float)random.NextDouble() * 0.8f + 0.2f,
+                    (float)(random.NextDouble() - 0.5f) * 1.5f
+                ).Normalized();
+            }
+        }
+
         public void Update(float deltaTime)
         {
-            Rotation += deltaTime * (0.5f + (float)random.NextDouble() * 1f);
+            Rotation += deltaTime * (0.3f + (float)random.NextDouble() * 0.7f);
 
             if (IsGrowing)
             {
@@ -100,7 +118,7 @@ namespace CrystalGrowthSimulator.Models
 
         private void UpdateTipPosition()
         {
-            TipPosition = Position + new Vector3(0, CurrentHeight, 0);
+            TipPosition = Position + GrowthDirection * CurrentHeight;
         }
 
         private void DissolveCrystal(float deltaTime)
@@ -127,9 +145,10 @@ namespace CrystalGrowthSimulator.Models
             dissolveProgress = 0f;
             CurrentHeight = 0.1f;
 
-            TargetHeight = 1.5f + (float)random.NextDouble() * 1.0f;
+            TargetHeight = 1.2f + (float)random.NextDouble() * 0.8f;
             GrowthSpeed = 0.01f + (float)random.NextDouble() * 0.02f;
-            BaseRadius = 0.08f + (float)random.NextDouble() * 0.04f;
+            BaseRadius = 0.06f + (float)random.NextDouble() * 0.04f;
+            GrowthDirection = GetRandomGrowthDirection();
 
             Faces.Clear();
             CreateBaseGeometry();
@@ -143,38 +162,49 @@ namespace CrystalGrowthSimulator.Models
 
         private void CreatePencilCrystal(float height, float baseRadius)
         {
-            // 8-гранная колонна (как у карандаша)
-            int sides = 8;
-            Vector3[] baseVertices = new Vector3[sides];
-            Vector3[] topVertices = new Vector3[sides];
+            Faces.Clear();
 
-            // Основание
-            for (int i = 0; i < sides; i++)
+            int sides = 6;
+
+            // Находим перпендикулярные векторы к направлению роста
+            Vector3 right, forward;
+            if (Math.Abs(GrowthDirection.Y) > 0.9f)
             {
-                float angle = i * (float)Math.PI * 2 / sides;
-                baseVertices[i] = new Vector3(
-                    (float)Math.Cos(angle) * baseRadius,
-                    0,
-                    (float)Math.Sin(angle) * baseRadius
-                );
+                right = Vector3.UnitX;
+                forward = Vector3.UnitZ;
+            }
+            else
+            {
+                right = Vector3.Cross(GrowthDirection, Vector3.UnitY).Normalized();
+                forward = Vector3.Cross(right, GrowthDirection).Normalized();
             }
 
-            // Верхняя часть (немного уже)
-            float topRadius = baseRadius * 0.7f;
+            // Основание кристалла (в точке позиции)
+            Vector3[] baseVertices = new Vector3[sides];
             for (int i = 0; i < sides; i++)
             {
                 float angle = i * (float)Math.PI * 2 / sides;
-                topVertices[i] = new Vector3(
-                    (float)Math.Cos(angle) * topRadius,
-                    height * 0.8f,
-                    (float)Math.Sin(angle) * topRadius
-                );
+                baseVertices[i] =
+                    right * ((float)Math.Cos(angle) * baseRadius) +
+                    forward * ((float)Math.Sin(angle) * baseRadius);
+            }
+
+            // Верхнее основание (суженное)
+            float topRadius = baseRadius * 0.6f;
+            Vector3 topCenter = GrowthDirection * height * 0.8f;
+            Vector3[] topVertices = new Vector3[sides];
+            for (int i = 0; i < sides; i++)
+            {
+                float angle = i * (float)Math.PI * 2 / sides;
+                topVertices[i] = topCenter +
+                    right * ((float)Math.Cos(angle) * topRadius) +
+                    forward * ((float)Math.Sin(angle) * topRadius);
             }
 
             // Острый кончик
-            Vector3 tipPoint = new Vector3(0, height, 0);
+            Vector3 tipPoint = GrowthDirection * height;
 
-            // Боковые грани основания
+            // Боковые грани между основаниями
             for (int i = 0; i < sides; i++)
             {
                 int nextIndex = (i + 1) % sides;
@@ -188,7 +218,7 @@ namespace CrystalGrowthSimulator.Models
                 Faces.Add(new CrystalFace(new[] { v1, v2, v3, v4 }, normal, GetCrystalColor()));
             }
 
-            // Грани к острию
+            // Боковые грани к острию
             for (int i = 0; i < sides; i++)
             {
                 int nextIndex = (i + 1) % sides;
@@ -201,19 +231,21 @@ namespace CrystalGrowthSimulator.Models
                 Faces.Add(new CrystalFace(new[] { v1, v2, v3 }, normal, GetCrystalColor()));
             }
 
-            // Основание (нижняя грань)
-            Faces.Add(new CrystalFace(baseVertices, new Vector3(0, -1, 0), GetCrystalColor()));
+            // Нижнее основание (добавляем только если кристалл растет вверх)
+            if (GrowthDirection.Y > 0.5f)
+            {
+                Faces.Add(new CrystalFace(baseVertices, -GrowthDirection.Normalized(), GetCrystalColor()));
+            }
         }
 
         private void UpdateGeometry()
         {
-            Faces.Clear();
-            CreatePencilCrystal(CurrentHeight, BaseRadius);
+            CreateBaseGeometry();
         }
 
         private Color GetCrystalColor()
         {
-            int variation = random.Next(-10, 10);
+            int variation = random.Next(-15, 15);
             return Color.FromArgb(
                 Math.Max(0, Math.Min(255, 180 + variation)),
                 Math.Max(0, Math.Min(255, 200 + variation)),
@@ -232,7 +264,12 @@ namespace CrystalGrowthSimulator.Models
         {
             GL.PushMatrix();
             GL.Translate(Position);
-            GL.Rotate(Rotation, 0, 1, 0);
+
+            // Вращение вокруг оси роста
+            if (GrowthDirection.Length > 0.001f)
+            {
+                GL.Rotate(Rotation, GrowthDirection.X, GrowthDirection.Y, GrowthDirection.Z);
+            }
 
             foreach (var face in Faces)
             {

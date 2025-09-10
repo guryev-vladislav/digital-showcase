@@ -22,6 +22,9 @@ namespace CrystalGrowthSimulator
         private float cameraRotationX = 45f;
         private float cameraRotationY = 0f;
 
+        // Направление света (из правого верхнего угла)
+        private Vector3 lightDirection = new Vector3(1f, 1f, 0.5f).Normalized();
+
         public MainForm()
         {
             InitializeComponent();
@@ -131,7 +134,7 @@ namespace CrystalGrowthSimulator
 
             glControl.MakeCurrent();
 
-            GL.ClearColor(0.1f, 0.1f, 0.15f, 1.0f);
+            GL.ClearColor(0.08f, 0.08f, 0.12f, 1.0f);
             GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
 
             SetupProjection();
@@ -145,9 +148,9 @@ namespace CrystalGrowthSimulator
             GL.BlendFunc(BlendingFactor.SrcAlpha, BlendingFactor.OneMinusSrcAlpha);
 
             SetupLighting();
+            DrawShadows(); // Рисуем тени перед кристаллами
 
             crystalCluster.Draw();
-
             DrawPlatform();
 
             glControl.SwapBuffers();
@@ -179,7 +182,7 @@ namespace CrystalGrowthSimulator
 
             Matrix4 lookAt = Matrix4.LookAt(
                 cameraPosition,
-                new Vector3(0, 1.5f, 0), // Смотрим на центр кристаллов
+                new Vector3(0, 1.2f, 0), // Смотрим чуть выше платформы
                 Vector3.UnitY
             );
             GL.LoadMatrix(ref lookAt);
@@ -187,23 +190,91 @@ namespace CrystalGrowthSimulator
 
         private void SetupLighting()
         {
+            // Один направленный источник света
+            GL.Light(LightName.Light0, LightParameter.Position, new float[] { lightDirection.X, lightDirection.Y, lightDirection.Z, 0.0f });
             GL.Light(LightName.Light0, LightParameter.Diffuse, new float[] { 0.9f, 0.9f, 0.9f, 1.0f });
-            GL.Light(LightName.Light0, LightParameter.Ambient, new float[] { 0.3f, 0.3f, 0.3f, 1.0f });
-            GL.Light(LightName.Light0, LightParameter.Position, new float[] { 3f, 5f, 3f, 0.0f });
+            GL.Light(LightName.Light0, LightParameter.Ambient, new float[] { 0.2f, 0.2f, 0.25f, 1.0f });
+            GL.Light(LightName.Light0, LightParameter.Specular, new float[] { 1.0f, 1.0f, 1.0f, 1.0f });
 
-            GL.Material(MaterialFace.Front, MaterialParameter.Specular, new float[] { 0.7f, 0.7f, 0.8f, 1.0f });
+            // Настройка материалов кристаллов с свечением
+            GL.Material(MaterialFace.Front, MaterialParameter.Ambient, new float[] { 0.1f, 0.1f, 0.15f, 1.0f });
+            GL.Material(MaterialFace.Front, MaterialParameter.Diffuse, new float[] { 0.6f, 0.7f, 0.8f, 1.0f });
+            GL.Material(MaterialFace.Front, MaterialParameter.Specular, new float[] { 0.8f, 0.8f, 1.0f, 1.0f });
             GL.Material(MaterialFace.Front, MaterialParameter.Shininess, 100f);
+            GL.Material(MaterialFace.Front, MaterialParameter.Emission, new float[] { 0.1f, 0.1f, 0.15f, 1.0f });
+        }
+
+        private void DrawShadows()
+        {
+            GL.Disable(EnableCap.Lighting);
+            GL.Disable(EnableCap.Texture2D);
+            GL.Enable(EnableCap.Blend);
+            GL.BlendFunc(BlendingFactor.SrcAlpha, BlendingFactor.OneMinusSrcAlpha);
+
+            foreach (var crystal in crystalCluster.Crystals)
+            {
+                DrawCrystalShadow(crystal);
+            }
+
+            GL.Disable(EnableCap.Blend);
+            GL.Enable(EnableCap.Lighting);
+        }
+
+        private void DrawCrystalShadow(RealCrystal crystal)
+        {
+            float platformY = 1.9f;
+            float shadowAlpha = 0.4f * crystal.Faces[0].Opacity;
+
+            // Проецируем каждую вершину кристалла на платформу
+            foreach (var face in crystal.Faces)
+            {
+                if (face.Vertices.Length < 3) continue;
+
+                // Проецируем все вершины грани на платформу
+                Vector3[] shadowVertices = new Vector3[face.Vertices.Length];
+
+                for (int i = 0; i < face.Vertices.Length; i++)
+                {
+                    // Переводим локальные координаты в мировые
+                    Vector3 worldVertex = crystal.Position + face.Vertices[i];
+
+                    // Проецируем вершину на платформу вдоль направления света
+                    float t = (platformY - worldVertex.Y) / lightDirection.Y;
+                    shadowVertices[i] = new Vector3(
+                        worldVertex.X + lightDirection.X * t,
+                        platformY + 0.001f, // Чуть выше платформы
+                        worldVertex.Z + lightDirection.Z * t
+                    );
+                }
+
+                // Рисуем тень для этой грани
+                GL.Color4(0f, 0f, 0f, shadowAlpha);
+                GL.Begin(PrimitiveType.Polygon);
+                foreach (var vertex in shadowVertices)
+                {
+                    GL.Vertex3(vertex);
+                }
+                GL.End();
+            }
         }
 
         private void DrawPlatform()
         {
             GL.PushMatrix();
-            GL.Translate(0, 1.0f, 0); // Прямо в центре
-            GL.Scale(0.8f, 0.05f, 0.8f); // Маленькая платформа
+            GL.Translate(0, 1.9f, 0);
+            GL.Scale(0.8f, 0.05f, 0.8f);
+
+            // Материал платформы
+            GL.Material(MaterialFace.Front, MaterialParameter.Ambient, new float[] { 0.4f, 0.3f, 0.2f, 1.0f });
+            GL.Material(MaterialFace.Front, MaterialParameter.Diffuse, new float[] { 0.5f, 0.4f, 0.3f, 1.0f });
+            GL.Material(MaterialFace.Front, MaterialParameter.Specular, new float[] { 0.1f, 0.1f, 0.1f, 1.0f });
+            GL.Material(MaterialFace.Front, MaterialParameter.Shininess, 10f);
+            GL.Material(MaterialFace.Front, MaterialParameter.Emission, new float[] { 0f, 0f, 0f, 1.0f });
 
             GL.Color3(Color.FromArgb(120, 100, 80));
             GL.Begin(PrimitiveType.Quads);
 
+            // Верхняя грань
             GL.Normal3(0, 1, 0);
             GL.Vertex3(-1, 0, -1);
             GL.Vertex3(1, 0, -1);
@@ -219,7 +290,7 @@ namespace CrystalGrowthSimulator
             switch (e.KeyCode)
             {
                 case Keys.H:
-                    MessageBox.Show("Controls:\nSpace - Start Dissolution\nR - Reset All Crystals\nMouse - Rotate camera\nWheel - Zoom\nH - Help", "Help");
+                    MessageBox.Show("Controls:\nSpace - Start Dissolution\nR - Reset All Crystals\nL - Change Light Direction\nMouse - Rotate camera\nWheel - Zoom\nH - Help", "Help");
                     break;
                 case Keys.Space:
                     crystalCluster.StartDissolutionForAll();
@@ -228,6 +299,14 @@ namespace CrystalGrowthSimulator
                 case Keys.R:
                     crystalCluster.StartGrowthForAll();
                     this.Text = "Crystal Cluster - Growing";
+                    break;
+                case Keys.L:
+                    // Меняем направление света
+                    lightDirection = new Vector3(
+                        (float)(new Random().NextDouble() * 2 - 1),
+                        1f, // Всегда сверху
+                        (float)(new Random().NextDouble() * 2 - 1)
+                    ).Normalized();
                     break;
             }
         }
