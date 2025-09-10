@@ -47,10 +47,11 @@ namespace CrystalGrowthSimulator.Models
         private void AddNewCrystal()
         {
             // Кристаллы на платформе с небольшим разбросом
+            // Платформа находится на Y = 1.0f, поэтому ставим кристаллы прямо на нее
             Vector3 position = centerPosition + new Vector3(
-                (float)(random.NextDouble() - 0.5) * 0.15f,
-                1.0f, // На уровне платформы
-                (float)(random.NextDouble() - 0.5) * 0.15f
+                (float)(random.NextDouble() - 0.5) * 0.12f,
+                1.0f, // Прямо на платформе! (Y = 1.0f)
+                (float)(random.NextDouble() - 0.5) * 0.12f
             );
 
             var crystal = new RealCrystal(position, random, Crystals);
