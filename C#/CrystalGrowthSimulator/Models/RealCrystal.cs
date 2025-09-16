@@ -189,7 +189,7 @@ namespace CrystalGrowthSimulator.Models
                     forward * ((float)Math.Sin(angle) * baseRadius);
             }
 
-            // Верхнее основание
+            // Верхнее основание (суженное)
             float topRadius = baseRadius * 0.6f;
             Vector3 topCenter = GrowthDirection * height * 0.8f;
             Vector3[] topVertices = new Vector3[sides];
@@ -204,7 +204,7 @@ namespace CrystalGrowthSimulator.Models
             // Острый кончик
             Vector3 tipPoint = GrowthDirection * height;
 
-            // Боковые грани
+            // Боковые грани между основаниями - СИНИЕ
             for (int i = 0; i < sides; i++)
             {
                 int nextIndex = (i + 1) % sides;
@@ -216,20 +216,13 @@ namespace CrystalGrowthSimulator.Models
 
                 Vector3 normal = CalculateNormal(v1, v2, v3);
 
-                // Средняя высота для градиента
-                float avgHeight = (Vector3.Dot(v1, GrowthDirection) +
-                                 Vector3.Dot(v2, GrowthDirection) +
-                                 Vector3.Dot(v3, GrowthDirection) +
-                                 Vector3.Dot(v4, GrowthDirection)) / 4f;
-                float heightFactor = avgHeight / height;
-                heightFactor = Math.Max(0f, Math.Min(1f, heightFactor));
-
-                Color faceColor = GetGradientColor(heightFactor);
+                // Синий цвет для ствола
+                Color faceColor = Color.FromArgb(0, 100, 255); // Яркий синий
 
                 Faces.Add(new CrystalFace(new[] { v1, v2, v3, v4 }, normal, faceColor));
             }
 
-            // Грани к острию
+            // Грани к острию - ГОЛУБЫЕ
             for (int i = 0; i < sides; i++)
             {
                 int nextIndex = (i + 1) % sides;
@@ -240,34 +233,15 @@ namespace CrystalGrowthSimulator.Models
 
                 Vector3 normal = CalculateNormal(v1, v2, v3);
 
-                // Высота для верхних граней
-                float avgHeight = (Vector3.Dot(v1, GrowthDirection) +
-                                 Vector3.Dot(v2, GrowthDirection) +
-                                 Vector3.Dot(v3, GrowthDirection)) / 3f;
-                float heightFactor = avgHeight / height;
-                heightFactor = Math.Max(0f, Math.Min(1f, heightFactor));
-
-                Color faceColor = GetGradientColor(heightFactor);
+                // Голубой цвет для кончика
+                Color faceColor = Color.FromArgb(135, 206, 250); // Голубой
 
                 Faces.Add(new CrystalFace(new[] { v1, v2, v3 }, normal, faceColor));
             }
 
-            // Нижнее основание
-            float baseHeightFactor = 0f; // Самое низкое положение
-            Color baseColor = GetGradientColor(baseHeightFactor);
+            // Нижнее основание - СИНЕЕ
+            Color baseColor = Color.FromArgb(0, 100, 255); // Яркий синий
             Faces.Add(new CrystalFace(baseVertices, -GrowthDirection.Normalized(), baseColor));
-        }
-
-        private Color GetGradientColor(float heightFactor)
-        {
-            // Градиент от синего (0.0) к зеленому (1.0)
-            heightFactor = Math.Max(0f, Math.Min(1f, heightFactor));
-
-            int r = 0;
-            int g = (int)(50 + 205 * heightFactor);   // Зеленый: 50 -> 255
-            int b = (int)(255 - 200 * heightFactor);  // Синий: 255 -> 55
-
-            return Color.FromArgb(r, g, b);
         }
 
         private Vector3 CalculateNormal(Vector3 a, Vector3 b, Vector3 c)
