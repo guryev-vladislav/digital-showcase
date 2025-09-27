@@ -6,8 +6,6 @@ import (
 	"os"
 	"sort"
 	"strconv"
-
-	"github.com/spf13/cobra"
 )
 
 /*
@@ -26,7 +24,7 @@ import (
 Затем - количество языков, которые знает хотя бы один школьник, на следующих строках - список таких языков.
 */
 
-func Polyglots(cmd *cobra.Command, args []string) {
+func Polyglots() {
 	scanner := bufio.NewScanner(os.Stdin)
 	scanner.Scan()
 	n, _ := strconv.Atoi(scanner.Text())
