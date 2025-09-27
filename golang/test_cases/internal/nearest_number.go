@@ -7,8 +7,6 @@ import (
 	"os"
 	"strconv"
 	"strings"
-
-	"github.com/spf13/cobra"
 )
 
 /*
@@ -23,7 +21,7 @@ import (
 Вывести значение элемента массива, ближайшее к x. Если таких чисел несколько, выведите любое из них.
 */
 
-func NearestNumber(cmd *cobra.Command, args []string) {
+func NearestNumber() {
 	scanner := bufio.NewScanner(os.Stdin)
 	scanner.Scan()
 	n, _ := strconv.Atoi(scanner.Text())

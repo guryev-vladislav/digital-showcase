@@ -5,8 +5,6 @@ import (
 	"fmt"
 	"os"
 	"strings"
-
-	"github.com/spf13/cobra"
 )
 
 /*
@@ -21,7 +19,7 @@ import (
 Программа должна вывести синоним к данному слову.
 */
 
-func MapSynonyms(cmd *cobra.Command, args []string) {
+func MapSynonyms() {
 	reader := bufio.NewReader(os.Stdin)
 
 	var n int
