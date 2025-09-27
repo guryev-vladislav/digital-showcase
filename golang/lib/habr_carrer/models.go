@@ -1,4 +1,4 @@
-package habr
+package habr_carrer
 
 // User представляет модель пользователя
 type User struct {
@@ -19,8 +19,8 @@ type UserLocation struct {
 	Country string `json:"country"` // Страна
 }
 
-// VacancyResponse представляет ответ API со списком вакансий
-type VacancyResponse struct {
+// Vacancies представляет ответ API со списком вакансий
+type Vacancies struct {
 	Vacancies  []Vacancy  `json:"vacancies"`  // Список вакансий
 	Pagination Pagination `json:"pagination"` // Информация о пагинации
 }
@@ -77,6 +77,11 @@ type Company struct {
 	LogoURL   string `json:"logo_url"`   // Ссылка на логотип компании
 }
 
+// Companies представляет список компаний
+type Companies struct {
+	Companies []Company `json:"companies"` // Список компаний
+}
+
 // ExpandedSalary представляет детальную информацию о зарплате
 type ExpandedSalary struct {
 	From     *int   `json:"from"`     // Минимальная зарплата (может быть null)
@@ -126,7 +131,7 @@ type ResponseUser struct {
 	Avatar          string         `json:"avatar"`           // Ссылка на аватар пользователя
 	Birthday        string         `json:"birthday"`         // День рождения
 	Specialization  string         `json:"specialization"`   // Специализация
-	Skills          []UserSkill    `json:"skills"`           // Навыки пользователя
+	Skills          []Skill        `json:"skills"`           // Навыки пользователя
 	ExperienceTotal UserExperience `json:"experience_total"` // Общий стаж пользователя
 	Relocation      bool           `json:"relocation"`       // Показатель готовности пользователя к релокации
 	Remote          bool           `json:"remote"`           // Показатель готовности пользователя к удаленной работе
@@ -138,10 +143,22 @@ type ResponseUser struct {
 	Educations      Education      `json:"educations"`       // Образование
 }
 
-// UserSkill представляет навык пользователя
-type UserSkill struct {
+// Skill представляет навык пользователя
+type Skill struct {
 	Title     string `json:"title"`      // Название навыка пользователя
 	AliasName string `json:"alias_name"` // Алиас навыка
+}
+
+// Skills представляет список навыков
+type Skills struct {
+	Skills []Skill `json:"skills"` // Список навыков
+}
+
+// SkillsParams представляет параметры для получения списка навыков
+type SkillsParams struct {
+	Term    string `url:"term,omitempty"`     // поисковый запрос
+	Page    int    `url:"page,omitempty"`     // номер страницы
+	PerPage int    `url:"per_page,omitempty"` // количество записей на страницу
 }
 
 // UserExperience представляет опыт работы пользователя
@@ -175,4 +192,11 @@ type Pagination struct {
 	Total int `json:"total"` // Общее количество элементов
 	Page  int `json:"page"`  // Текущая страница
 	Per   int `json:"per"`   // Количество элементов на странице
+}
+
+type Token struct {
+	AccessToken string `json:"access_token"`
+	TokenType   string `json:"token_type"`
+	Scope       string `json:"scope"`
+	CreatedAt   int    `json:"created_at"`
 }
