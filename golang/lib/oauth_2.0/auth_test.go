@@ -11,7 +11,7 @@ import (
 func TestGenerateState(t *testing.T) {
 	cfg := oauth2.Config{
 		AuthURL:     "https://hh.ru/oauth/authorize",
-		ClientID:    "V7O98HN4VUFAPU1PT08AT8U1GD5CM7L9F2JQSFRD4GGDRTS21CNQU92EGJVRU4U6",
+		ClientID:    "",
 		RedirectURI: "http://localhost:8080/hh/auth/callback", // ← путь /hh/auth/callback
 		Scopes:      []string{},
 	}
