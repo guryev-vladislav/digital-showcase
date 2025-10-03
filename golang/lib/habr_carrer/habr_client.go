@@ -23,7 +23,7 @@ type HabrClient struct {
 func NewHabrClient(
 	ctx context.Context,
 	httpClient *http.Client,
-	host, clientID, clientSecret, redirectURI string,
+	host, clientID, clientSecret, redirectURI, authorizationCode string,
 ) (*HabrClient, error) {
 
 	if httpClient == nil {
@@ -38,30 +38,12 @@ func NewHabrClient(
 		redirectURI:  redirectURI,
 	}
 
-	authorizationCode, err := habrClient.authorization(ctx)
-	if err != nil {
-		return nil, err
-	}
-
-	err = habrClient.createAccessToken(ctx, clientID, clientSecret, redirectURI, authorizationCode)
+	err := habrClient.createAccessToken(ctx, clientID, clientSecret, redirectURI, authorizationCode)
 	if err != nil {
 		return nil, err
 	}
 
 	return habrClient, nil
-}
-
-func (hc *HabrClient) authorization(ctx context.Context) (string, error) {
-	endpoint := fmt.Sprintf(endpointAuthorize, hc.clientID, hc.redirectURI)
-	body, err := hc.get(ctx, endpoint)
-	if err != nil {
-		return "", err
-	}
-	fmt.Println(string(body))
-
-	var authorizationCode string
-
-	return authorizationCode, nil
 }
 
 func (hc *HabrClient) createAccessToken(
