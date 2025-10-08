@@ -1,4 +1,13 @@
-package solutions
+package phonenumbers
+
+import (
+	"bufio"
+	"fmt"
+	"os"
+	"strconv"
+
+	"github.com/spf13/cobra"
+)
 
 // Телефонные номера
 
@@ -12,17 +21,30 @@ package solutions
 // Формат выходных данных
 // Выведи 1, если строку можно полностью разрезать на непересекающиеся непрерывные блоки, которые могут быть корректными номерами российских мобильных телефонов, и 0 в противном случае.
 
-func PhoneNumberCurrent(input string) bool {
+// phoneNumbersCmd represents the phoneNumbers command
+var PhoneNumbersCmd = &cobra.Command{
+	Use: "phoneNumbers",
+	Run: PhoneNumberCmd,
+}
 
-	if len(input)%11 != 0 {
-		return false
+func PhoneNumberCmd(cmd *cobra.Command, args []string) {
+	fmt.Println("Enter the number of digits:")
+	scanner := bufio.NewScanner(os.Stdin)
+	scanner.Scan()
+	_, err := strconv.Atoi(scanner.Text())
+	if err != nil {
+		fmt.Println("Error:", err)
+		return
 	}
 
-	for i := 0; i < len(input); i += 11 {
-		if input[i] != '7' || input[i+1] != '9' {
-			return false
-		}
+	scanner.Scan()
+	input := scanner.Text()
+
+	ok := PhoneNumberCurrent(input)
+	if ok {
+		fmt.Println("1")
+	} else {
+		fmt.Println("0")
 	}
 
-	return true
 }

@@ -1,4 +1,4 @@
-package solutions
+package polyglots
 
 import (
 	"bufio"

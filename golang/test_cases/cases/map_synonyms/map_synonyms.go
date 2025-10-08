@@ -1,4 +1,4 @@
-package solutions
+package mapsynonyms
 
 import (
 	"bufio"
