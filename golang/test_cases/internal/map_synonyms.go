@@ -1,4 +1,4 @@
-package testcases
+package internal
 
 import (
 	"bufio"
