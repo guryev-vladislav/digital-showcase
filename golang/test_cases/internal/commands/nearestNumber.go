@@ -1,8 +1,7 @@
 /*
 Copyright © 2025 NAME HERE <EMAIL ADDRESS>
-
 */
-package cmd
+package commands
 
 import (
 	"fmt"
@@ -11,7 +10,7 @@ import (
 )
 
 // nearestNumberCmd represents the nearestNumber command
-var nearestNumberCmd = &cobra.Command{
+var NearestNumberCmd = &cobra.Command{
 	Use:   "nearestNumber",
 	Short: "A brief description of your command",
 	Long: `A longer description that spans multiple lines and likely contains examples
@@ -23,18 +22,4 @@ to quickly create a Cobra application.`,
 	Run: func(cmd *cobra.Command, args []string) {
 		fmt.Println("nearestNumber called")
 	},
-}
-
-func init() {
-	rootCmd.AddCommand(nearestNumberCmd)
-
-	// Here you will define your flags and configuration settings.
-
-	// Cobra supports Persistent Flags which will work for this command
-	// and all subcommands, e.g.:
-	// nearestNumberCmd.PersistentFlags().String("foo", "", "A help for foo")
-
-	// Cobra supports local flags which will only run when this command
-	// is called directly, e.g.:
-	// nearestNumberCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
 }

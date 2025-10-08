@@ -1,4 +1,4 @@
-package internal
+package solutions
 
 import (
 	"bufio"
