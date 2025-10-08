@@ -1,11 +1,7 @@
 package polyglots
 
 import (
-	"bufio"
-	"fmt"
-	"os"
 	"sort"
-	"strconv"
 )
 
 /*
@@ -24,29 +20,25 @@ import (
 Затем - количество языков, которые знает хотя бы один школьник, на следующих строках - список таких языков.
 */
 
-func Polyglots() {
-	scanner := bufio.NewScanner(os.Stdin)
-	scanner.Scan()
-	n, _ := strconv.Atoi(scanner.Text())
+type PolyglotsLanguages struct {
+	commonLanguages    []string
+	allUniqueLanguages []string
+}
+
+func Polyglots(studentLanguages [][]string) *PolyglotsLanguages {
 
 	allLanguages := make(map[string]int)
-	studentLanguages := make([][]string, n)
 
-	for i := range n {
-		scanner.Scan()
-		m, _ := strconv.Atoi(scanner.Text())
-		studentLanguages[i] = make([]string, m)
-		for j := range m {
-			scanner.Scan()
-			language := scanner.Text()
-			studentLanguages[i][j] = language
+	for i := range len(studentLanguages) {
+		for _, language := range studentLanguages[i] {
+
 			allLanguages[language]++
 		}
 	}
 
 	commonLanguages := []string{}
 	for language, count := range allLanguages {
-		if count == n {
+		if count == len(studentLanguages) {
 			commonLanguages = append(commonLanguages, language)
 		}
 	}
@@ -59,13 +51,10 @@ func Polyglots() {
 	sort.Strings(commonLanguages)
 	sort.Strings(allUniqueLanguages)
 
-	fmt.Println(len(commonLanguages))
-	for _, language := range commonLanguages {
-		fmt.Println(language)
+	polyglots := PolyglotsLanguages{
+		commonLanguages:    commonLanguages,
+		allUniqueLanguages: allUniqueLanguages,
 	}
 
-	fmt.Println(len(allUniqueLanguages))
-	for _, language := range allUniqueLanguages {
-		fmt.Println(language)
-	}
+	return &polyglots
 }

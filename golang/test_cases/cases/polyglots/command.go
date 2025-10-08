@@ -1,22 +1,47 @@
 package polyglots
 
 import (
+	"bufio"
 	"fmt"
+	"os"
+	"strconv"
 
 	"github.com/spf13/cobra"
 )
 
 // PolyglotsCmd represents the polyglots command
 var PolyglotsCmd = &cobra.Command{
-	Use:   "polyglots",
-	Short: "A brief description of your command",
-	Long: `A longer description that spans multiple lines and likely contains examples
-and usage of using your command. For example:
+	Use: "polyglots",
+	Run: polyglotsCmdRun,
+}
 
-Cobra is a CLI library for Go that empowers applications.
-This application is a tool to generate the needed files
-to quickly create a Cobra application.`,
-	Run: func(cmd *cobra.Command, args []string) {
-		fmt.Println("polyglots called")
-	},
+func polyglotsCmdRun(cmd *cobra.Command, args []string) {
+	scanner := bufio.NewScanner(os.Stdin)
+	scanner.Scan()
+	n, _ := strconv.Atoi(scanner.Text())
+
+	studentLanguages := make([][]string, n)
+
+	for i := range n {
+		scanner.Scan()
+		m, _ := strconv.Atoi(scanner.Text())
+		studentLanguages[i] = make([]string, m)
+		for j := range m {
+			scanner.Scan()
+			language := scanner.Text()
+			studentLanguages[i][j] = language
+		}
+	}
+
+	polyglots := Polyglots(studentLanguages)
+
+	fmt.Println(len(polyglots.commonLanguages))
+	for _, language := range polyglots.commonLanguages {
+		fmt.Println(language)
+	}
+
+	fmt.Println(len(polyglots.allUniqueLanguages))
+	for _, language := range polyglots.allUniqueLanguages {
+		fmt.Println(language)
+	}
 }
