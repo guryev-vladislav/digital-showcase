@@ -6,9 +6,8 @@ package cmd
 import (
 	"os"
 
+	"github.com/guryev-vladislav/digital-showcase/golang/test_cases/internal/commands"
 	"github.com/spf13/cobra"
-
-	commands "github.com/guryev-vladislav/digital-showcase/golang/test_cases/internal/commands"
 )
 
 // RootCmd represents the base command when called without any subcommands
