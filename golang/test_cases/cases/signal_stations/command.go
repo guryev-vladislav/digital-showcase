@@ -9,16 +9,29 @@ import (
 	"github.com/spf13/cobra"
 )
 
-// SignalStationsCmd represents the signalStations command
 var SignalStationsCmd = &cobra.Command{
-	Use:   "signalStations",
-	Short: "A brief description of your command",
-	Long: `A longer description that spans multiple lines and likely contains examples
-and usage of using your command. For example:
+	Use:   "signal_stations",
+	Short: "Найти площадь треугольника, образованного базовыми станциями",
+	Long: `Команда signal_stations вычисляет квадрат площади треугольника, образованного тремя базовыми станциями.
 
-Cobra is a CLI library for Go that empowers applications.
-This application is a tool to generate the needed files
-to quickly create a Cobra application.`,
+	На территории расположены три базовые станции с радиусами покрытия a, b и c.
+	Сигнал каждой станции принимается на расстоянии радиуса покрытия или меньше от станции.
+	Условия измерения сигнала:
+	- есть ровно одна точка приема сигналов от станций 1 и 2
+	- есть ровно одна точка приема сигналов от станций 2 и 3  
+	- есть ровно одна точка приема сигналов от станций 1 и 3
+
+	Формат ввода:
+	- Первая строка: радиус покрытия первой станции a (1 ≤ a ≤ 100)
+	- Вторая строка: радиус покрытия второй станции b (1 ≤ b ≤ 100)
+	- Третья строка: радиус покрытия третьей станции c (1 ≤ c ≤ 100)
+
+	Формат вывода:
+	- Два целых числа: минимальное и максимальное значение квадрата площади треугольника
+	- Если треугольник невозможен: -1
+
+	Пример использования:
+	echo -e "3\n4\n5" | go run main.go signal_stations`,
 	Run: SignalStationsCmdRun,
 }
 

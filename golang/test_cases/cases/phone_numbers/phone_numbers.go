@@ -1,7 +1,5 @@
 package phonenumbers
 
-// PhoneNumberCurrent checks if a given string can be fully divided into 11-digit blocks, each starting with '79'.
-// It returns true if the string can be fully divided, and false otherwise.
 func PhoneNumberCurrent(input string) bool {
 
 	if len(input)%11 != 0 {

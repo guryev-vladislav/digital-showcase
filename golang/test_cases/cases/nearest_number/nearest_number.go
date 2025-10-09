@@ -1,12 +1,7 @@
 package nearestnumber
 
 import (
-	"bufio"
-	"fmt"
 	"math"
-	"os"
-	"strconv"
-	"strings"
 )
 
 /*
@@ -21,21 +16,8 @@ import (
 Вывести значение элемента массива, ближайшее к x. Если таких чисел несколько, выведите любое из них.
 */
 
-func NearestNumber() {
-	scanner := bufio.NewScanner(os.Stdin)
-	scanner.Scan()
-	n, _ := strconv.Atoi(scanner.Text())
+func NearestNumber(elements []int, x int) int {
 
-	scanner.Scan()
-	elementsStr := strings.Split(scanner.Text(), " ")
-
-	elements := make([]int, n)
-	for i, s := range elementsStr {
-		elements[i], _ = strconv.Atoi(s)
-	}
-
-	scanner.Scan()
-	x, _ := strconv.Atoi(scanner.Text())
 	closest := elements[0]
 	minDiff := math.Abs(float64(elements[0] - x))
 	for _, element := range elements {
@@ -45,5 +27,7 @@ func NearestNumber() {
 			closest = element
 		}
 	}
-	fmt.Println(closest)
+
+	return closest
+
 }

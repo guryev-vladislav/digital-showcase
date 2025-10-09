@@ -12,13 +12,17 @@ import (
 // maxCashbackCmd represents the maxCashback command
 var MaxCashbackCmd = &cobra.Command{
 	Use:   "max_cashback",
-	Short: "A brief description of your command",
-	Long: `A longer description that spans multiple lines and likely contains examples
-and usage of using your command. For example:
+	Short: "Рассчитать максимальный кешбэк за покупки",
+	Long: `Команда max_cashback вычисляет максимальный кешбэк, который клиент может получить
+за свои покупки согласно условиям программы лояльности.
 
-Cobra is a CLI library for Go that empowers applications.
-This application is a tool to generate the needed files
-to quickly create a Cobra application.`,
+Формат ввода:
+- Первая строка: минимальная стоимость покупки (a)
+- Вторая строка: сумма кешбэка за покупку (b) 
+- Третья строка: общая сумма потраченных денег (x)
+
+Пример использования:
+echo -e "100\n5\n450" | go run main.go max_cashback`,
 	Run: MaxCashbackCmdRun,
 }
 
